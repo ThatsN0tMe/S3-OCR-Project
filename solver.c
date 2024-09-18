@@ -1,133 +1,137 @@
-#include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <err.h>
+#include <ctype.h>
 
-
-
-// Target is the word of the grid and s the string we want to compare
-// It returns 0 if the start of s is diferent from Target
-// It returns 1 if the start of s is the same than Target
-// It returns 2 if they are the same
-
-char* remove_lowercase(char* s) {
-  char* res = malloc(strlen(s) + 1);
-  int i = 0;
-  while (*s != 0) {
-    if (*s >= 'a' && *s <= 'z')  {
-      res[i] = *s - 32;
+char** read_file(char* filepath, int* lines, int* columns) { //Reads from a file and copies it to a variable
+    FILE* file = fopen(filepath, "r"); //Read file
+    if (file == NULL)
+        err(EXIT_FAILURE, "Error : file is empty or not found\n");
+    int current_columns = 0; //Variables for count lines and columns
+    char c;
+    *lines = 0;
+    *columns = -1;
+    while ((c = fgetc(file)) != EOF) { //Read each character and see if it is not equal to the end of file character
+        if (c == '\n') {
+            (*lines)++;
+            if (*columns != -1 && *columns != current_columns)
+                err(EXIT_FAILURE, "Error : The grid is not valid\n");
+            *columns = current_columns;
+            current_columns = 0;
+        } 
+        else
+            current_columns++;
     }
-    else {
-      res[i] = *s;
+    if (current_columns > 0) {
+        if (*columns != -1 && *columns != current_columns)
+            err(EXIT_FAILURE, "Error : The grid is not valid\n");
+        (*lines)++;
+        *columns = current_columns;
     }
-    s++;
-    i++;
-  } 
-  res[i] = 0;
-  return res;
+    rewind(file);
+    char** grid = (char**)malloc((*lines) * sizeof(char*)); //Allocate memory to store the grid
+    for (int i = 0; i < (*lines); i++) {
+        grid[i] = (char*)malloc((*columns) * sizeof(char));
+        fscanf(file, "%s", grid[i]);
+    }
+    fclose(file);
+    return grid;
 }
 
-// Check if a target matches string the start of another string
-// For example if target "aab" matches the start of "aabcd", it is in this case
-
-int starts_with(char* target, char* s) {
-  int len_s = strlen(s);
-  int len_target = strlen(target);
-  if (len_s > len_target) return 0;
-  else {
-    while (*s != 0) {
-      if (*s != *target) return 0;
-      target++;
-      s++;
-    }
-  }
-  return (*target == 0) ? 2 : 1;
+int check_direction(char** grid, int lines, int columns, int x, int y, int dx, int dy, char* word) { //Check if we are looking for the word in the right direction
+    int length = strlen(word);
+    for (int i = 0; i < length; i++) {
+        int nx = x + i * dx;
+        int ny = y + i * dy;
+        if (nx < 0 || ny < 0 || nx >= columns || ny >= lines || tolower(grid[ny][nx]) != tolower(word[i]))
+            return 0;
+    }    
+    return 1;
 }
 
-int main(int argc, char* argv[]) {
-
-
-  if (argc != 3) errx(1, "EXIT_FAILURE, paramters of solver are incorect. Must be : ./solver \"grid\" \"researched-word\"");
-
-  // File oppenning 
-
-  FILE * fgrid;
-  fgrid = fopen(argv[1], "r");
-  char s[101];
-
-  char grid[100][100]; // Our file translated to a grid
-  
-  int i = 0;
-  while (fgets(s, 100, fgrid)) {
-      strcpy(grid[i], s);
-      i++;
-
-  }
-  
-  int lines = i;
-  int columns = strlen(grid[0]) - 1;
-  fclose(fgrid);
-  
-  // Solver
-  
-  int x1;
-  int x2;
-  int y1;
-  int y2;
-
-
-  char* target = remove_lowercase(argv[2]); // We remove the lowercases of argv
-  
-  for(int i = 0; i < lines; i++) {
-    for (int j = 0; j < columns; j++) {
-
-      x1 = j;
-      y1 = i;
-      char first_elem[1] = {grid[i][j]};
-
-      if(starts_with(target, first_elem)) {
-
-        for (int k = 0; k < 8; k++) { // Foreach 8 directions on the grid
-          char str[100] = {0};
-          str[0] = grid[i][j];
-          int dir_x = 0;
-          int dir_y = 0;
-
-          switch(k) {
-            case 0: dir_x = 1; break;
-            case 1: dir_x = 1; dir_y = 1; break;
-            case 2: dir_y = 1; break;
-            case 3: dir_x = -1; dir_y = 1; break;
-            case 4: dir_x = -1; break;
-            case 5: dir_x = -1; dir_y = -1; break;
-            case 6: dir_y = -1; break;
-            case 7: dir_x = 1; dir_y = -1; break;
-          }
-
-          
-          int l = 1;
-          x2 = x1;
-          y2 = y1;
-          int same_start = starts_with(target, str);
-          while (same_start == 2 || 
-            (same_start && x2 >= 0 && y2 >= 0 && x2 < columns && y2 < lines)) {
-            
-            if (same_start == 2) { // We find the word
-              printf("(%i,%i)(%i,%i)",x1,y1, x2, y2);
-              return 0;
+int find_word(char** grid, int lines, int columns, char* word, int* x0, int* y0, int* x1, int* y1) { //Search for the word and store the coordinates in variables
+    int directions[8][2] = {
+        {1, 0},   // Right
+        {0, 1},   // Down
+        {1, 1},   // Diagonal bottom right
+        {0, -1},  // High
+        {-1, 0},  // Left
+        {-1, -1}, // Diagonal top left
+        {-1, 1},  // Diagonal bottom left
+        {1, -1}   // Diagonal top right
+    };
+    for (int y = 0; y < lines; y++) { //Search on the grid
+        for (int x = 0; x < columns; x++) {
+            if (tolower(grid[y][x]) == tolower(word[0])) { //If it's egual to the first letter of the word
+                for (int d = 0; d < 8; d++) { //Chose a research direction
+                    int dx = directions[d][0]; //x direction
+                    int dy = directions[d][1]; //y direction
+                    if (check_direction(grid, lines, columns, x, y, dx, dy, word)) { //If the word exists, then store the coordinates
+                        *x0 = x; //Coordinate of the beginning of the word
+                        *y0 = y;
+                        *x1 = x + (strlen(word) - 1) * dx; //Coordinate of the end of the word
+                        *y1 = y + (strlen(word) - 1) * dy;
+                        return 1;
+                    }
+                }
             }
-
-            x2 = l * dir_x + x1;
-            y2 = l * dir_y + y1;
-            str[l] = grid[y2][x2];
-            l++;
-
-            same_start = starts_with(target, str);
-          }
         }
-      }
     }
-  }
-  printf("Not found");
-  return 0;
+    return 0;
+}
+
+void print_grid(char** grid, int lines, int columns) {
+    printf("The grid size is %d lines * %d columns :\n\n", lines, columns);
+    for (int y = -4; y < lines; y++) {
+        if (y >= 0)
+            printf(" %d |", y);
+        for (int x = 0; x < columns; x++) {
+            if (y == -4 || y == -2) {
+                printf("    ");
+                y++;
+            }
+            if (y == -3)
+                printf(" %d", x);
+            else if (y == -1)
+                printf(" —");
+            else
+                printf(" %c", grid[y][x]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
+
+int main(int argc, char* argv[]) { //Main function that searches for the word in the grid and returns its coordinates
+    if (argc != 3)
+        err(EXIT_FAILURE, "Error : Too much argument\n");
+    char* filepath = argv[1];
+    char* word = argv[2];
+    int lines, columns;
+    char** grid = read_file(filepath, &lines, &columns);
+    if (grid == NULL)
+        return 0;
+
+/*
+    size_t length = strlen(word);
+    for (size_t i = 0; i < length; i++)
+        word[i] = tolower(word[i]);
+    if (strcmp(word, "print") == 0) {
+        print_grid(grid, lines, columns);
+        return 1;
+    }
+*/
+
+    int x0, y0, x1, y1;
+    if (find_word(grid, lines, columns, word, &x0, &y0, &x1, &y1))
+        printf("(%d,%d)(%d,%d)\n", x0, y0, x1, y1);
+    else
+        printf("Not found\n");
+    for (int i = 0; i < lines; i++) { //Free the memory
+        free(grid[i]);
+    }
+    free(grid);
+
+    return 1;
 }
