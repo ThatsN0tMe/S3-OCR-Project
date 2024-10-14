@@ -127,8 +127,9 @@ double forward_propagation(double* input, double** weights_hidden, double* biase
 }
 
 
-double calculate_error(double target, double output) {
-
+// Mean squared error
+double calculate_error(double* target, double* output) { 
+  return 0.5f * (output - target) * (output - target);
 }
 
 int main() {
