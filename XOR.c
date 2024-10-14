@@ -3,6 +3,17 @@
 #include <err.h>
 #include <stdio.h>
 
+#define INPUT_NEURONS 2
+#define HIDDEN_NEURONS 2
+
+double** array_to_matrix(double* m1, size_t width_m1) {
+  double** res = malloc(width_m1 * sizeof(double*));
+  for (int i = 0; i < width_m1; i++) {
+    res[i] = calloc(1, sizeof(double));
+    res[i][0] = m1[i];
+  }
+  return res;
+}
 
 double** matrix_product(double** m1, size_t width_m1, size_t height_m1,
                         double** m2, size_t width_m2, size_t height_m2) {
@@ -25,9 +36,27 @@ double** matrix_product(double** m1, size_t width_m1, size_t height_m1,
   return res;
 }
 
-//double sigmod (double x) {
-//  return (1 / (1 + exp(-x)));
-//}
+double** matrix_sum(double** m1, size_t width_m1, size_t height_m1,
+                    double** m2, size_t width_m2, size_t height_m2) {
+  if (width_m1 != width_m2 || height_m1 != height_m2)
+    errx(EXIT_FAILURE, "In matrix_sum, the matrix size are incorrect");
+
+  double** res = malloc(height_m1 * sizeof(double));
+
+  for (size_t i = 0 ; i < height_m1; i++) {
+    res[i] = calloc(width_m1, sizeof(double));
+    for (size_t j = 0; j < width_m1; j++) {
+      res[i][j] = m1[i][j] + m2[i][j];
+    }
+  }
+  
+  return res;
+}
+
+
+double sigmoid (double x) {
+  return (1 / (1 + exp(-x)));
+}
 
 double sigmoid_derivative(double x) {
   return (x * (1 - x));
@@ -42,56 +71,74 @@ void initialize_weights(double weights[], int size) {
 }
 
 void initialize_biases(double biases[], int size) {
-double random;
+  double random;
   for (int i = 0; i < size; i++) {
     random = (float)rand() / (float)RAND_MAX * 2.0f - 1.0f;
     biases[i] = random;
   }
 }
 
-double forward_propagation(double input[], double weights_hidden[][2], double biases_hidden[], double weights_output[], double bias_output, double hidden_output[]) {
+void printMatrix(double** matrix, int rows, int cols) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            printf("%lf ", matrix[i][j]); // %lf pour afficher un double
+        }
+        printf("\n"); // Nouvelle ligne après chaque ligne de la matrice
+    }
 }
 
-int main () {
-  double** a = calloc(2, sizeof(double*));
-  for (int i = 0 ; i < 2; i ++) {
-    a[i] = calloc(2, sizeof(double));
-  }
-  a[0][0]= 2;
-  a[0][1] = 1;
-  a[1][0] = 1;
-  a[1][1] = 4;
+double forward_propagation(double* input, double** weights_hidden, double* biases_hidden, double* weights_output, double bias_output, double* hidden_output) {
+
+  size_t weights_hidden_height = INPUT_NEURONS;
+  size_t weights_hidden_width = HIDDEN_NEURONS;
+
+  size_t weights_output_width = HIDDEN_NEURONS;
+
+  size_t input_width = INPUT_NEURONS;
+
+  size_t biases_hidden_width = HIDDEN_NEURONS;
+
+  double** input_in_matrix = array_to_matrix(input, input_width);
+
+  size_t hidden_output_width = HIDDEN_NEURONS;
+
+  double** hidden_output_matrix = calloc(1, sizeof(double*));
+  hidden_output_matrix[0] = calloc(hidden_output_width, sizeof(double));
   
-  double** b = calloc(2, sizeof(double*));
-  for (int i = 0 ; i < 2; i ++) {
-    b[i] = calloc(3, sizeof(double));
-  }
-  b[0][0] = 1;
-  b[0][1] = 2;
-  b[0][2] = 0;
-  b[1][0] = 0;
-  b[1][1] = 1;
-  b[1][2] = 2;
 
-  double** matrix = matrix_product(a, 2, 2, b, 3, 2);
+  hidden_output_matrix = matrix_product(weights_hidden, weights_hidden_width, weights_hidden_height,
+                                 input_in_matrix, 1, input_width);
 
-  for (int row = 0; row < 2; row++) {
-    for (int column = 0; column < 3; column++) {
-      printf("%f     ", matrix[row][column]);
-    }
-    printf("\n");
+  hidden_output_matrix = matrix_sum(hidden_output_matrix, 1, hidden_output_width,
+                             array_to_matrix(biases_hidden, biases_hidden_width), 1, biases_hidden_width);
+
+  for (size_t i = 0; i < hidden_output_width; i++) {
+    hidden_output[i] = sigmoid(hidden_output_matrix[i][0]);
   }
 
-  for (int i = 0; i < 2; i++) {
-    free(a[i]);
-    free(matrix[i]);
-  }
-  for (int i = 0; i < 2; i++) {
-    free(b[i]);
-  }
-  free(a);
-  free(b);
-  free(matrix);
 
-  getchar();
+  double** final_output_matrix = matrix_product(array_to_matrix(weights_output, weights_output_width), weights_output_width, 1,
+                                     array_to_matrix(hidden_output, hidden_output_width), 1, hidden_output_width);
+
+  double final_output = final_output_matrix[0][0] + bias_output;
+  final_output = sigmoid(final_output);
+
+  return final_output;
+}
+
+int main() {
+    double input[INPUT_NEURONS] = {1, 1};
+    double weights_hidden_0[HIDDEN_NEURONS] = {0.5, 0.9};
+    double weights_hidden_1[HIDDEN_NEURONS] = {0.4, 1.0};
+    double* weights_hidden[INPUT_NEURONS] = {weights_hidden_0, weights_hidden_1};
+    double biases_hidden[HIDDEN_NEURONS] = {0.8, 0.1};
+    double weights_output[HIDDEN_NEURONS] = {1.2, -0.7};
+    double bias_output = 0.3;
+    double hidden_output[HIDDEN_NEURONS];
+
+    double output = forward_propagation(input, weights_hidden, biases_hidden, weights_output, bias_output, hidden_output);
+
+    printf("Résultat de la forward propagation : %f\n", output);
+
+    return 0;
 }
