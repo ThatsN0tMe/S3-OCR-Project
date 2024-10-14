@@ -126,6 +126,11 @@ double forward_propagation(double* input, double** weights_hidden, double* biase
   return final_output;
 }
 
+
+double calculate_error(double target, double output) {
+
+}
+
 int main() {
     double input[INPUT_NEURONS] = {1, 1};
     double weights_hidden_0[HIDDEN_NEURONS] = {0.5, 0.9};
