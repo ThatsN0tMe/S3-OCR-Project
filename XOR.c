@@ -186,32 +186,55 @@ double calculate_error(double* targets, double* predictions, size_t size) {
 }
 
 
+int main() {
+    // Ensemble de données pour XOR
+    double inputs[4][INPUT_NEURONS] = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
+    double expected_outputs[4] = {0, 1, 1, 0};
 
-int main(int argc, char** argv) {
-  double input[INPUT_NEURONS] = {atoi(argv[1]), atoi(argv[2])};
-  double weights_hidden_0[HIDDEN_NEURONS] = {10.0, -10.0};
-  double weights_hidden_1[HIDDEN_NEURONS] = {-10.0, 10.0};
-  double* weights_hidden[INPUT_NEURONS] = {weights_hidden_0, weights_hidden_1};
-  double biases_hidden[HIDDEN_NEURONS] = {-5, 15};
-  double weights_output[HIDDEN_NEURONS] = {10.0, 10.0};
-  double bias_output = -15;
-  double hidden_output[HIDDEN_NEURONS];
+    // Initialiser les poids et biais pour la couche cachée et la sortie
+    double weights_hidden_0[HIDDEN_NEURONS] = {4.621525, 4.627491};
+    double weights_hidden_1[HIDDEN_NEURONS] = {6.401074, 6.423641};
+    double* weights_hidden[INPUT_NEURONS] = {weights_hidden_0, weights_hidden_1};
+    double biases_hidden[HIDDEN_NEURONS] = {-7.361792, -2.810839};
 
-  double output = forward_propagation(input, weights_hidden, biases_hidden, weights_output, bias_output, hidden_output);
+    double weights_output[HIDDEN_NEURONS] = {-10.306382, 9.382612};
+    double bias_output = -4.497823;
 
-  printf("Résultat de la forward propagation : %f\n", output);
+    // Stockage pour les sorties cachées et les résultats de la propagation avant
+    double hidden_output[HIDDEN_NEURONS];
+    double output;
 
-  double * predictions;
-  predictions = calloc(1, sizeof(double));
-  predictions[0] = output;
-  
-  double * targets = calloc(1, sizeof(double));
-  targets[0] = atoi(argv[3]);
+    // Entraînement
+    for (int epoch = 0; epoch < EPOCHS; epoch++) {
+        double total_loss = 0.0;
 
-  size_t size = sizeof(predictions) / sizeof(predictions[0]);
+        for (int i = 0; i < 4; i++) {
+            // Étape de propagation avant
+            output = forward_propagation(inputs[i], weights_hidden, biases_hidden, weights_output, bias_output, hidden_output);
 
-  double ce_loss = calculate_error(predictions, targets, size);
-  printf("Cross-Entropy Loss: %f\n", ce_loss);
+            // Calcul de la perte pour l'exemple actuel
+            double predictions[1] = {output};
+            double targets[1] = {expected_outputs[i]};
+            double loss = calculate_error(targets, predictions, 1);
+            total_loss += loss;
 
-  return 0;
+            // Propagation arrière pour ajuster les poids et biais
+            backward_propagation(inputs[i], hidden_output, output, expected_outputs[i], weights_hidden, biases_hidden, weights_output, &bias_output);
+        }
+
+        // Afficher la perte totale après chaque 1000 epochs pour suivre l'évolution de l'entraînement
+        if (epoch % 1000 == 0) {
+            printf("Epoch %d, Loss: %f\n", epoch, total_loss / 4);
+        }
+    }
+
+    // Test final sur les exemples XOR
+    printf("\nRésultats après entraînement:\n");
+    for (int i = 0; i < 4; i++) {
+        output = forward_propagation(inputs[i], weights_hidden, biases_hidden, weights_output, bias_output, hidden_output);
+        printf("Input: %d XOR %d = %f (Attendu: %d)\n", (int)inputs[i][0], (int)inputs[i][1], output, (int)expected_outputs[i]);
+    }
+
+    return 0;
 }
+
