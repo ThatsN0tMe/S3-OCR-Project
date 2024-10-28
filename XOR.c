@@ -5,6 +5,8 @@
 
 #define INPUT_NEURONS 2
 #define HIDDEN_NEURONS 2
+#define LEARNING_RATE 0.1
+#define EPOCHS 10000
 
 double** array_to_matrix(double* m1, size_t width_m1) {
   double** res = malloc(width_m1 * sizeof(double*));
@@ -58,6 +60,11 @@ double sigmoid (double x) {
   return (1 / (1 + exp(-x)));
 }
 
+
+double sigmoid_derviate (double x) {
+  return sigmoid(x) * (1 - sigmoid(x));
+}
+
 double sigmoid_derivative(double x) {
   return (x * (1 - x));
 }
@@ -81,9 +88,9 @@ void initialize_biases(double biases[], int size) {
 void printMatrix(double** matrix, int rows, int cols) {
   for (int i = 0; i < rows; i++) {
     for (int j = 0; j < cols; j++) {
-      printf("%lf ", matrix[i][j]); // %lf pour afficher un double
+      printf("%lf ", matrix[i][j]);
     }
-    printf("\n"); // Nouvelle ligne après chaque ligne de la matrice
+    printf("\n");
   }
 }
 
@@ -126,6 +133,35 @@ double forward_propagation(double* input, double** weights_hidden, double* biase
   return final_output;
 }
 
+void backward_propagation(double* input, double* hidden_output, double output,
+                          double expected_output, double* weights_hidden[], double* biases_hidden,
+                          double* weights_output, double* bias_output) {
+  
+    double output_error = output - expected_output;
+    double output_delta = output_error * output * (1 - output);
+
+    for (size_t i = 0; i < HIDDEN_NEURONS; i++) {
+        weights_output[i] -= LEARNING_RATE * output_delta * hidden_output[i];
+    }
+    *bias_output -= LEARNING_RATE * output_delta;
+
+    double hidden_delta[HIDDEN_NEURONS];
+    for (size_t i = 0; i < HIDDEN_NEURONS; i++) {
+        double hidden_error = output_delta * weights_output[i];
+        hidden_delta[i] = hidden_error * hidden_output[i] * (1 - hidden_output[i]); 
+    }
+
+    for (size_t i = 0; i < INPUT_NEURONS; i++) {
+        for (size_t j = 0; j < HIDDEN_NEURONS; j++) {
+            weights_hidden[i][j] -= LEARNING_RATE * hidden_delta[j] * input[i];
+        }
+    }
+
+    for (size_t i = 0; i < HIDDEN_NEURONS; i++) {
+        biases_hidden[i] -= LEARNING_RATE * hidden_delta[i];
+    }
+}
+
 
 // cross entropy loss
 double calculate_error(double* targets, double* predictions, size_t size) { 
@@ -133,7 +169,6 @@ double calculate_error(double* targets, double* predictions, size_t size) {
   double loss = 0.0;
 
   for (size_t i = 0; i < size; i++) {
-    // Clipping the predictions to avoid log(0)
     double pred = predictions[i];
     if (pred < epsilon) {
       pred = epsilon;
@@ -142,29 +177,41 @@ double calculate_error(double* targets, double* predictions, size_t size) {
       pred = 1 - epsilon;
     }
 
-    // Calculating the cross-entropy for each element
     loss += targets[i] * log(pred) + (1 - targets[i]) * log(1 - pred);
   }
 
-  // Averaging the loss
   loss = -loss / size;
 
   return loss;
 }
 
+
+
 int main(int argc, char** argv) {
   double input[INPUT_NEURONS] = {atoi(argv[1]), atoi(argv[2])};
-  double weights_hidden_0[HIDDEN_NEURONS] = {4.621525, 4.627491};
-  double weights_hidden_1[HIDDEN_NEURONS] = {6.401074, 6.423641};
+  double weights_hidden_0[HIDDEN_NEURONS] = {10.0, -10.0};
+  double weights_hidden_1[HIDDEN_NEURONS] = {-10.0, 10.0};
   double* weights_hidden[INPUT_NEURONS] = {weights_hidden_0, weights_hidden_1};
-  double biases_hidden[HIDDEN_NEURONS] = {-7.361792, -2.810839};
-  double weights_output[HIDDEN_NEURONS] = {-10.306382, 9.382612};
-  double bias_output = -4.497823;
+  double biases_hidden[HIDDEN_NEURONS] = {-5, 15};
+  double weights_output[HIDDEN_NEURONS] = {10.0, 10.0};
+  double bias_output = -15;
   double hidden_output[HIDDEN_NEURONS];
 
   double output = forward_propagation(input, weights_hidden, biases_hidden, weights_output, bias_output, hidden_output);
 
   printf("Résultat de la forward propagation : %f\n", output);
+
+  double * predictions;
+  predictions = calloc(1, sizeof(double));
+  predictions[0] = output;
+  
+  double * targets = calloc(1, sizeof(double));
+  targets[0] = atoi(argv[3]);
+
+  size_t size = sizeof(predictions) / sizeof(predictions[0]);
+
+  double ce_loss = calculate_error(predictions, targets, size);
+  printf("Cross-Entropy Loss: %f\n", ce_loss);
 
   return 0;
 }
