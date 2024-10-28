@@ -49,7 +49,7 @@ double** matrix_sum(double** m1, size_t width_m1, size_t height_m1,
       res[i][j] = m1[i][j] + m2[i][j];
     }
   }
-  
+
   return res;
 }
 
@@ -79,12 +79,12 @@ void initialize_biases(double biases[], int size) {
 }
 
 void printMatrix(double** matrix, int rows, int cols) {
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            printf("%lf ", matrix[i][j]); // %lf pour afficher un double
-        }
-        printf("\n"); // Nouvelle ligne après chaque ligne de la matrice
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < cols; j++) {
+      printf("%lf ", matrix[i][j]); // %lf pour afficher un double
     }
+    printf("\n"); // Nouvelle ligne après chaque ligne de la matrice
+  }
 }
 
 double forward_propagation(double* input, double** weights_hidden, double* biases_hidden, double* weights_output, double bias_output, double* hidden_output) {
@@ -104,13 +104,13 @@ double forward_propagation(double* input, double** weights_hidden, double* biase
 
   double** hidden_output_matrix = calloc(1, sizeof(double*));
   hidden_output_matrix[0] = calloc(hidden_output_width, sizeof(double));
-  
+
 
   hidden_output_matrix = matrix_product(weights_hidden, weights_hidden_width, weights_hidden_height,
-                                 input_in_matrix, 1, input_width);
+                                        input_in_matrix, 1, input_width);
 
   hidden_output_matrix = matrix_sum(hidden_output_matrix, 1, hidden_output_width,
-                             array_to_matrix(biases_hidden, biases_hidden_width), 1, biases_hidden_width);
+                                    array_to_matrix(biases_hidden, biases_hidden_width), 1, biases_hidden_width);
 
   for (size_t i = 0; i < hidden_output_width; i++) {
     hidden_output[i] = sigmoid(hidden_output_matrix[i][0]);
@@ -118,7 +118,7 @@ double forward_propagation(double* input, double** weights_hidden, double* biase
 
 
   double** final_output_matrix = matrix_product(array_to_matrix(weights_output, weights_output_width), weights_output_width, 1,
-                                     array_to_matrix(hidden_output, hidden_output_width), 1, hidden_output_width);
+                                                array_to_matrix(hidden_output, hidden_output_width), 1, hidden_output_width);
 
   double final_output = final_output_matrix[0][0] + bias_output;
   final_output = sigmoid(final_output);
@@ -127,24 +127,44 @@ double forward_propagation(double* input, double** weights_hidden, double* biase
 }
 
 
-// Mean squared error
-double calculate_error(double* target, double* output) { 
-  return 0.5f * (output - target) * (output - target);
+// cross entropy loss
+double calculate_error(double* targets, double* predictions, size_t size) { 
+  double epsilon = 1e-15;
+  double loss = 0.0;
+
+  for (size_t i = 0; i < size; i++) {
+    // Clipping the predictions to avoid log(0)
+    double pred = predictions[i];
+    if (pred < epsilon) {
+      pred = epsilon;
+    }
+    if (pred > 1 - epsilon) {
+      pred = 1 - epsilon;
+    }
+
+    // Calculating the cross-entropy for each element
+    loss += targets[i] * log(pred) + (1 - targets[i]) * log(1 - pred);
+  }
+
+  // Averaging the loss
+  loss = -loss / size;
+
+  return loss;
 }
 
-int main() {
-    double input[INPUT_NEURONS] = {1, 1};
-    double weights_hidden_0[HIDDEN_NEURONS] = {0.5, 0.9};
-    double weights_hidden_1[HIDDEN_NEURONS] = {0.4, 1.0};
-    double* weights_hidden[INPUT_NEURONS] = {weights_hidden_0, weights_hidden_1};
-    double biases_hidden[HIDDEN_NEURONS] = {0.8, 0.1};
-    double weights_output[HIDDEN_NEURONS] = {1.2, -0.7};
-    double bias_output = 0.3;
-    double hidden_output[HIDDEN_NEURONS];
+int main(int argc, char** argv) {
+  double input[INPUT_NEURONS] = {atoi(argv[1]), atoi(argv[2])};
+  double weights_hidden_0[HIDDEN_NEURONS] = {4.621525, 4.627491};
+  double weights_hidden_1[HIDDEN_NEURONS] = {6.401074, 6.423641};
+  double* weights_hidden[INPUT_NEURONS] = {weights_hidden_0, weights_hidden_1};
+  double biases_hidden[HIDDEN_NEURONS] = {-7.361792, -2.810839};
+  double weights_output[HIDDEN_NEURONS] = {-10.306382, 9.382612};
+  double bias_output = -4.497823;
+  double hidden_output[HIDDEN_NEURONS];
 
-    double output = forward_propagation(input, weights_hidden, biases_hidden, weights_output, bias_output, hidden_output);
+  double output = forward_propagation(input, weights_hidden, biases_hidden, weights_output, bias_output, hidden_output);
 
-    printf("Résultat de la forward propagation : %f\n", output);
+  printf("Résultat de la forward propagation : %f\n", output);
 
-    return 0;
+  return 0;
 }
