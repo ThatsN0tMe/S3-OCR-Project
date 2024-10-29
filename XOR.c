@@ -5,8 +5,109 @@
 
 #define INPUT_NEURONS 2
 #define HIDDEN_NEURONS 2
-#define LEARNING_RATE 0.1
+#define LAYERS 2
+#define LEARNING_RATE 0.0001
 #define EPOCHS 10000
+int NEURONS_NUMBER[LAYERS] = {2, 2};
+
+
+typedef struct neuron_t
+{
+  double actv;
+  double *out_weights;
+  double bias;
+  double z;
+
+  double d_actv;
+  double *d_weights;
+  double d_bias;
+  double d_z;
+
+} neuron;
+
+
+typedef struct layer_t
+{
+  int neuron_number;
+  struct neuron_t *neurons; 
+} layer;
+
+
+
+
+layer create_layer(int neuron_number) {
+  neuron * neurons = calloc(neuron_number, sizeof(neuron));
+  layer lay;
+  lay.neuron_number = neuron_number;
+  lay.neurons = neurons;
+  return lay;
+}
+
+neuron create_neuron(int out_connections) {
+  neuron neu;
+  neu.actv = 0.0f;
+  neu.bias = ((double)rand() / RAND_MAX) * 2 - 1;  // Random bias between -1 and 1
+  neu.z = 0.0f;
+  neu.d_actv = 0.0f;
+  neu.d_bias = 0.0f;
+  neu.d_z = 0.0f;
+
+  if (out_connections > 0) {
+    neu.out_weights = calloc(out_connections, sizeof(double));
+    neu.d_weights = calloc(out_connections, sizeof(double));
+
+    for (int i = 0; i < out_connections; i++) {
+      neu.out_weights[i] = ((float)rand() / RAND_MAX) * 2 - 1;  // Random weight between -1 and 1
+      neu.d_weights[i] = 0.0f;
+    }
+  }
+
+  else {
+    neu.out_weights = NULL;
+    neu.d_weights = NULL;
+  }
+
+  return neu;
+}
+
+
+
+int create_network() {
+
+  layer * layer = malloc(sizeof(layer) * LAYERS);
+
+  for (int i = 0; i < LAYERS; i++) {
+
+    layer[i] = create_layer(NEURONS_NUMBER[i]);
+
+    printf("Created Layer: %d\n", i+1);
+    printf("Number of Neurons in Layer %d: %d\n", i+1,layer[i].neuron_number);
+
+    for (int j = 0; j < NEURONS_NUMBER[i]; j++) {
+      if (i < LAYERS - 1) {
+        neuron neuron = create_neuron(NEURONS_NUMBER[i+1]);
+        layer[i].neurons[j] = neuron;
+
+        printf("Neuron %d in Layer %d created\n",j+1,i+1);
+
+      }
+      else {
+        neuron neuron = create_neuron(0);
+        layer[i].neurons[j] = neuron;
+        printf("Neuron %d in Layer %d created\n",j+1,i+1);
+      }
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
 
 double** array_to_matrix(double* m1, size_t width_m1) {
   double** res = malloc(width_m1 * sizeof(double*));
@@ -72,7 +173,7 @@ double sigmoid_derivative(double x) {
 void initialize_weights(double weights[], int size) {
   double random;
   for (int i = 0; i < size; i++) {
-    random = (float)rand() / (float)RAND_MAX * 2.0f - 1.0f;
+    random = (double)rand() / (double)RAND_MAX * 2.0f - 1.0f;
     weights[i] = random;
   }
 }
@@ -80,7 +181,7 @@ void initialize_weights(double weights[], int size) {
 void initialize_biases(double biases[], int size) {
   double random;
   for (int i = 0; i < size; i++) {
-    random = (float)rand() / (float)RAND_MAX * 2.0f - 1.0f;
+    random = (double)rand() / (double)RAND_MAX * 2.0f - 1.0f;
     biases[i] = random;
   }
 }
@@ -136,30 +237,30 @@ double forward_propagation(double* input, double** weights_hidden, double* biase
 void backward_propagation(double* input, double* hidden_output, double output,
                           double expected_output, double* weights_hidden[], double* biases_hidden,
                           double* weights_output, double* bias_output) {
-  
-    double output_error = output - expected_output;
-    double output_delta = output_error * output * (1 - output);
 
-    for (size_t i = 0; i < HIDDEN_NEURONS; i++) {
-        weights_output[i] -= LEARNING_RATE * output_delta * hidden_output[i];
-    }
-    *bias_output -= LEARNING_RATE * output_delta;
+  double output_error = output - expected_output;
+  double output_delta = output_error * output * (1 - output);
 
-    double hidden_delta[HIDDEN_NEURONS];
-    for (size_t i = 0; i < HIDDEN_NEURONS; i++) {
-        double hidden_error = output_delta * weights_output[i];
-        hidden_delta[i] = hidden_error * hidden_output[i] * (1 - hidden_output[i]); 
-    }
+  for (size_t i = 0; i < HIDDEN_NEURONS; i++) {
+    weights_output[i] -= LEARNING_RATE * output_delta * hidden_output[i];
+  }
+  *bias_output -= LEARNING_RATE * output_delta;
 
-    for (size_t i = 0; i < INPUT_NEURONS; i++) {
-        for (size_t j = 0; j < HIDDEN_NEURONS; j++) {
-            weights_hidden[i][j] -= LEARNING_RATE * hidden_delta[j] * input[i];
-        }
-    }
+  double hidden_delta[HIDDEN_NEURONS];
+  for (size_t i = 0; i < HIDDEN_NEURONS; i++) {
+    double hidden_error = output_delta * weights_output[i];
+    hidden_delta[i] = hidden_error * hidden_output[i] * (1 - hidden_output[i]); 
+  }
 
-    for (size_t i = 0; i < HIDDEN_NEURONS; i++) {
-        biases_hidden[i] -= LEARNING_RATE * hidden_delta[i];
+  for (size_t i = 0; i < INPUT_NEURONS; i++) {
+    for (size_t j = 0; j < HIDDEN_NEURONS; j++) {
+      weights_hidden[i][j] -= LEARNING_RATE * hidden_delta[j] * input[i];
     }
+  }
+
+  for (size_t i = 0; i < HIDDEN_NEURONS; i++) {
+    biases_hidden[i] -= LEARNING_RATE * hidden_delta[i];
+  }
 }
 
 
@@ -187,54 +288,7 @@ double calculate_error(double* targets, double* predictions, size_t size) {
 
 
 int main() {
-    // Ensemble de données pour XOR
-    double inputs[4][INPUT_NEURONS] = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
-    double expected_outputs[4] = {0, 1, 1, 0};
-
-    // Initialiser les poids et biais pour la couche cachée et la sortie
-    double weights_hidden_0[HIDDEN_NEURONS] = {4.621525, 4.627491};
-    double weights_hidden_1[HIDDEN_NEURONS] = {6.401074, 6.423641};
-    double* weights_hidden[INPUT_NEURONS] = {weights_hidden_0, weights_hidden_1};
-    double biases_hidden[HIDDEN_NEURONS] = {-7.361792, -2.810839};
-
-    double weights_output[HIDDEN_NEURONS] = {-10.306382, 9.382612};
-    double bias_output = -4.497823;
-
-    // Stockage pour les sorties cachées et les résultats de la propagation avant
-    double hidden_output[HIDDEN_NEURONS];
-    double output;
-
-    // Entraînement
-    for (int epoch = 0; epoch < EPOCHS; epoch++) {
-        double total_loss = 0.0;
-
-        for (int i = 0; i < 4; i++) {
-            // Étape de propagation avant
-            output = forward_propagation(inputs[i], weights_hidden, biases_hidden, weights_output, bias_output, hidden_output);
-
-            // Calcul de la perte pour l'exemple actuel
-            double predictions[1] = {output};
-            double targets[1] = {expected_outputs[i]};
-            double loss = calculate_error(targets, predictions, 1);
-            total_loss += loss;
-
-            // Propagation arrière pour ajuster les poids et biais
-            backward_propagation(inputs[i], hidden_output, output, expected_outputs[i], weights_hidden, biases_hidden, weights_output, &bias_output);
-        }
-
-        // Afficher la perte totale après chaque 1000 epochs pour suivre l'évolution de l'entraînement
-        if (epoch % 1000 == 0) {
-            printf("Epoch %d, Loss: %f\n", epoch, total_loss / 4);
-        }
-    }
-
-    // Test final sur les exemples XOR
-    printf("\nRésultats après entraînement:\n");
-    for (int i = 0; i < 4; i++) {
-        output = forward_propagation(inputs[i], weights_hidden, biases_hidden, weights_output, bias_output, hidden_output);
-        printf("Input: %d XOR %d = %f (Attendu: %d)\n", (int)inputs[i][0], (int)inputs[i][1], output, (int)expected_outputs[i]);
-    }
-
-    return 0;
+  create_network();
+  return 0;
 }
 
