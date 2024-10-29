@@ -1,7 +1,7 @@
 CC := gcc
-CFLAGS := -Wall -Wextra -Werror
-TARGET := Aflelou
-OBJS := aflelou.o Pretreatment/pretreatment.o Rotate/rotate.o
+CFLAGS := -Wall -Wextra
+TARGET := afflelou
+OBJS := afflelou.o Pretreatment/pretreatment.o Rotate/rotate.o
 
 SDL_LIBS := -lSDL2 -lSDL2_image -lm
 
@@ -13,7 +13,7 @@ GTK_LIBS := $(shell pkg-config --libs gtk+-3.0)
 
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) $(GTK_CFLAGS) -o $(TARGET) $(OBJS) $(GTK_LIBS) $(SDL_LIBS)
-	./Aflelou
+	./afflelou
 
 .PHONY: clean
 clean:

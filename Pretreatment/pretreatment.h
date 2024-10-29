@@ -1,9 +1,5 @@
-#ifndef PRETREATMENT_H
-#define PRETREATMENT_H
-
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h> 
-#include <stdio.h>
+#ifndef PRETREATMENT_H_
+#define PRETREATMENT_H_
 
 void ApplyPretreatment(char *filepath);
 

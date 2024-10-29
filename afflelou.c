@@ -1,24 +1,24 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <gtk/gtk.h>
-
-#include "Pretreatment/pretreatment.h"
+#include "afflelou.h"
 #include "Rotate/rotate.h"
+#include "Pretreatment/pretreatment.h"
 
-void display_home();
-void select_file(GtkWidget *button, gpointer user_data);
-void display_image_options();
-
-GtkWidget *window = NULL;
-char *global_filepath = NULL;
-
-//Macro
 #define presentationText "Bienvenue dans l'application d'analyse de grilles de mots !"
 
+
+GtkWidget *window = NULL;
+char *filepath = NULL;
+
+
 void pretreatment() {
-    ApplyPretreatment(global_filepath);
+    ApplyPretreatment(filepath);
 }
 
-void rotatee() {
-    create_rotate_window(global_filepath);
+void doRotation() {
+    create_rotate_window(filepath);
 }
 
 void display_home() {
@@ -45,6 +45,7 @@ void display_home() {
     gtk_widget_show_all(window); //Show window
 }
 
+
 void display_image_options() {
     //Remove all widget in window
     GList *children = gtk_container_get_children(GTK_CONTAINER(window));
@@ -64,7 +65,7 @@ void display_image_options() {
 
     // Button "Rotate Image"
     GtkWidget *button_rotate = gtk_button_new_with_label("Rotate Image");
-    g_signal_connect(button_rotate, "clicked", G_CALLBACK(rotatee), NULL);
+    g_signal_connect(button_rotate, "clicked", G_CALLBACK(doRotation), NULL);
     gtk_box_pack_start(GTK_BOX(box), button_rotate, TRUE, TRUE, 0);
 
     // Button "Back"
@@ -74,6 +75,7 @@ void display_image_options() {
 
     gtk_widget_show_all(window);
 }
+
 
 void select_file(GtkWidget *button, gpointer user_data) {
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
@@ -100,16 +102,80 @@ void select_file(GtkWidget *button, gpointer user_data) {
     GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
 
     if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
-        char *filepath = gtk_file_chooser_get_filename(chooser);
 
-        global_filepath = g_strdup(filepath);
+        char* sourcepath = gtk_file_chooser_get_filename(chooser);
+        filepath = getDestPath(sourcepath);
+        
+        if (filepath == NULL || cloneFile(sourcepath, filepath) == -1)
+            return -1;
+
         display_image_options();
-
         gtk_button_set_label(GTK_BUTTON(button), "File open !");
     }
 
     gtk_widget_destroy(dialog);
 }
+
+
+//je cree un nouveau path dans le directory /Modified pour pas changer le fichier originel
+char* getDestPath(const char* sourcepath) {
+
+    char* res = NULL;
+    const char* dir = "/Modified";
+    int index = 0, startIndex = 0, endIndex = 0;
+
+    while (sourcepath[index] != 0) {
+        if (sourcepath[index] == '/') {
+            endIndex = index;
+        }
+        index++;
+    }
+    startIndex = endIndex - 1;
+
+    while (startIndex >= 0 && sourcepath[startIndex] != '/'){
+        startIndex--;
+    }
+
+    printf("Original Length : %d  |  Total Length : %d\n", index + 1, startIndex + index - endIndex + 10);
+
+    res = calloc(startIndex + index - endIndex + 10, 1);
+
+    if (startIndex > 0) {
+        memcpy(res, sourcepath, startIndex);
+    }
+    memcpy(res + startIndex, dir, 9);
+    memcpy(res + startIndex + 9, sourcepath + endIndex, index - endIndex);
+
+    printf("%s\n", res);
+
+    return res;
+}
+
+
+//ca va clone le fichier originel dans le nouveau path au cas ou un golmon rotate avant d'appliquer le pretraitement
+int cloneFile(const char *src_path, const char *dest_path) {
+    FILE *src = fopen(src_path, "rb");
+    FILE *dest = fopen(dest_path, "wb");
+
+    if (src == NULL || dest == NULL) {
+        if (src) fclose(src);
+        if (dest) fclose(dest);
+        return -1;
+    }
+
+    size_t bytes;
+    char buffer[4096];
+
+    while ((bytes = fread(buffer, 1, sizeof(buffer), src)) > 0) {
+        fwrite(buffer, 1, bytes, dest);
+    }
+
+    fclose(src);
+    fclose(dest);
+    return 0;
+}
+
+
 
 int main(int argc, char *argv[]) {
     gtk_init(&argc, &argv); //GTK Initialization

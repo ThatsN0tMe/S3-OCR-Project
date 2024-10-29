@@ -1,8 +1,10 @@
-#include <gtk/gtk.h>
-#include <cairo.h>
+#include <stdio.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-#include <stdio.h>
+#include <gtk/gtk.h>
+#include <cairo.h>
+#include "rotate.h"
+
 
 static GdkPixbuf *original_pixbuf;
 static GtkWidget *original_image;

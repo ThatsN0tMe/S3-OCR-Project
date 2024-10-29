@@ -1,9 +1,10 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h> 
-#include <SDL2/SDL.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <stdio.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include "pretreatment.h"
+
 
 void grayscale(SDL_Surface *surface) {
     Uint32* pixels = (Uint32*)surface->pixels;
