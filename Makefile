@@ -1,9 +1,9 @@
 CC := gcc
 CFLAGS := -Wall -Wextra -Werror
 TARGET := Aflelou
-OBJS := aflelou.o Grayscale/grayscale.o Rotate/rotate.o
+OBJS := aflelou.o Pretreatment/pretreatment.o Rotate/rotate.o
 
-SDL_LIBS := -lSDL2 -lSDL2_image
+SDL_LIBS := -lSDL2 -lSDL2_image -lm
 
 GTK_CFLAGS := $(shell pkg-config --cflags gtk+-3.0)
 GTK_LIBS := $(shell pkg-config --libs gtk+-3.0)

@@ -1,6 +1,6 @@
 #include <gtk/gtk.h>
 
-#include "Grayscale/grayscale.h"
+#include "Pretreatment/pretreatment.h"
 #include "Rotate/rotate.h"
 
 void display_home();
@@ -13,8 +13,8 @@ char *global_filepath = NULL;
 //Macro
 #define presentationText "Bienvenue dans l'application d'analyse de grilles de mots !"
 
-void grayscale() {
-    remove_color(global_filepath);
+void pretreatment() {
+    ApplyPretreatment(global_filepath);
 }
 
 void rotatee() {
@@ -58,8 +58,8 @@ void display_image_options() {
     gtk_container_add(GTK_CONTAINER(window), box);
 
     // Button "Convert to Grayscale"
-    GtkWidget *button_grayscale = gtk_button_new_with_label("Convert to Grayscale");
-    g_signal_connect(button_grayscale, "clicked", G_CALLBACK(grayscale), NULL);
+    GtkWidget *button_grayscale = gtk_button_new_with_label("Pretreatment");
+    g_signal_connect(button_grayscale, "clicked", G_CALLBACK(pretreatment), NULL);
     gtk_box_pack_start(GTK_BOX(box), button_grayscale, TRUE, TRUE, 0);
 
     // Button "Rotate Image"
