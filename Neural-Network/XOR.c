@@ -276,10 +276,10 @@ int main(int argc, char** argv) {
     {1, 1}
   };
   int output_data[4][1] = {
+    {1},
     {0},
-    {1},
-    {1},
-    {0}
+    {0},
+    {1}
   };
 
   DESIRED_OUTPUTS = malloc(sizeof(int*) * 4);
