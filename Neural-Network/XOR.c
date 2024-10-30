@@ -92,6 +92,7 @@ int create_network() {
       }
     }
   }
+  return EXIT_SUCCESS;
 }
 
 
@@ -245,7 +246,7 @@ void load_weights(const char *filename) {
     }
 
     fclose(file);
-    printf("Weights loaded from %s\n", filename);
+    printf("Poids et biais chargés depuis %s\n", filename);
 }
 
 
@@ -303,6 +304,11 @@ int main(int argc, char** argv) {
         double output = LAYERS[LAYER_NUMBER - 1].neurons[0].actv;
         double error = output - DESIRED_OUTPUTS[p][0];
         total_error += error * error;
+
+        if (epoch % 50000 == 0 && total_error > 0.5) {
+          create_network();
+          epoch = 0;
+        }
 
         printf("Error probability : %f \n\n", total_error);
 
