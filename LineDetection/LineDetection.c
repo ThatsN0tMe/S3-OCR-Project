@@ -2,7 +2,14 @@
 #include <SDL2/SDL.h>
 
 
-int** brightness(SDL_Surface* surface) {
+int** brightness(char* filepath) {
+
+    SDL_Surface *surface = IMG_Load(filepath);
+    if (!surface) {
+        printf("Error loading image: %s\n", IMG_GetError());
+        SDL_Quit();
+        return;
+    }
     
     int r, g, b;
     Uint32* pixels = (Uint32)surface->pixels;

@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <gtk/gtk.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+
 #include "Interface.h"
 #include "../afflelou.h"
 
@@ -103,7 +106,6 @@ void select_file(GtkWidget *button, gpointer user_data) {
         if (filepath == NULL || cloneFile(sourcepath, filepath) == -1)
             return;
 
-        initSDL();
         display_image_options();
         gtk_button_set_label(GTK_BUTTON(button), "File open !");
     }

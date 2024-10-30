@@ -305,33 +305,41 @@ double variance(SDL_Surface *surface) {
 }
 
 
-void ApplyPretreatment(char *filepath, SDL_Surface* originalSurface) {
+void ApplyPretreatment(char *filepath) {
 
-    SDL_Surface* surface = SDL_ConvertSurfaceFormat(originalSurface, SDL_PIXELFORMAT_ARGB8888, 0);
+    SDL_Surface* originalSurface = IMG_Load(filepath);
+    if (!originalSurface) {
+        printf("Image loading error: %s\n", IMG_GetError());
+        return;
+    }
+
+    SDL_Surface* newSurface = SDL_ConvertSurfaceFormat(originalSurface, SDL_PIXELFORMAT_ARGB8888, 0);
     SDL_FreeSurface(originalSurface);
 
-    if (!surface) {
+    if (!newSurface) {
         printf("Image format conversion error: %s\n", SDL_GetError());
         IMG_Quit();
         SDL_Quit();
     }
 
-    grayscale(surface);
-    int need_filter = variance(surface) < 1600;
-    contrast(surface, 60);
-    brightness(surface, -100);
+    grayscale(newSurface);
+    int need_filter = variance(newSurface) < 1600;
+    contrast(newSurface, 60);
+    brightness(newSurface, -100);
     //gaussian(surface, 5);
     if (need_filter)
-        median(surface, 2);
+        median(newSurface, 2);
 
-    Uint32 major_color = get_major_color(surface);
+
+    Uint32 major_color = get_major_color(newSurface);
     Uint8 r, g, b;
-    SDL_GetRGB(major_color, surface->format, &r, &g, &b);
-    binarize(surface, 0.299 * r + 0.587 * g + 0.114 * b);
+    SDL_GetRGB(major_color, newSurface->format, &r, &g, &b);
+    binarize(newSurface, 0.299 * r + 0.587 * g + 0.114 * b);
     //gaussian(surface, 3);
     //median(surface, 2);
 
-    if (SDL_SaveBMP(surface, filepath) != 0) {
+
+    if (SDL_SaveBMP(newSurface, filepath) != 0) {
         printf("Image saving error: %s\n", SDL_GetError());
     }
     else {

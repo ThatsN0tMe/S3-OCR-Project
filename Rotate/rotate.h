@@ -5,6 +5,6 @@
 
 void rotate();
 void rotate_and_update_image(GtkRange *range);
-void create_rotate_window(char *filepath, SDL_Surface* surface);
+void create_rotate_window();
 
 #endif

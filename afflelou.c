@@ -13,20 +13,19 @@
 
 
 char *filepath = NULL;
-SDL_Surface* surface = NULL;
 GtkWidget *window = NULL;
 
 
 void applyPreprocess() {
-    ApplyPretreatment(filepath, surface);
+    ApplyPretreatment(filepath);
 }
 
 void doRotation() {
-    create_rotate_window(filepath, surface);
+    create_rotate_window(filepath);
 }
 
 void detectLines() {
-    brightness(surface);
+    brightness(filepath);
 }
 
 
@@ -42,27 +41,10 @@ void initSDL() {
         SDL_Quit();
         return;
     }
-    
-    surface = IMG_Load(filepath);
-    if (!surface) {
-        printf("Image loading error: %s\n", IMG_GetError());
-        quitSDL();
-        return;
-    }
-
-    /*
-    SDL_Surface* surface = SDL_ConvertSurfaceFormat(originalSurface, SDL_PIXELFORMAT_ARGB8888, 0);
-    SDL_FreeSurface(originalSurface);
-
-    if (!surface) {
-        printf("Image format conversion error: %s\n", SDL_GetError());
-        quitSDL();
-    }*/
 }
 
 
 void quitSDL() {
-    SDL_FreeSurface(surface);
     IMG_Quit();
     SDL_Quit();
 }

@@ -3,6 +3,6 @@
 
 #include <SDL2/SDL.h>
 
-int** brightness(SDL_Surface* surface);
+int** brightness(char* filepath);
 
 #endif
