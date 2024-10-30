@@ -1,0 +1,114 @@
+\section{Aspects techniques}
+
+\subsection{Prétratiement}
+\subsection{Rotation manuelle de l'image}
+\subsection{Détection de la grille et de la liste de mots}
+\subsection{Détection et découpage des lettres}
+\subsection{Solver}
+
+\paragraph{Technologies et bibliothèques utilisées}
+Aucune bibliothèque externe n’a été employée (hormis string.h, maths.h etc.).
+
+\paragraph{Aspects techniques : Fonctionnement du Solver de Mots Mêlés}
+
+Pour construire un programme capable de résoudre un mot mêlé, nous avons utilisé une approche qui parcourt la grille dans toutes les directions pour identifier des séquences correspondant à un mot cible. Voici les principaux aspects techniques et choix logiques de cette implémentation.
+
+\paragraph{Gestion des Données d'Entrée et Préparation de la Grille}
+
+\begin{itemize}
+    \item \textbf{Chargement de la Grille :} Le programme commence par ouvrir le fichier texte spécifié par l'utilisateur, qui contient la grille de mots mêlés. Chaque ligne du fichier est lue et stockée dans une matrice \texttt{grid[100][100]}, créant une représentation 2D de la grille. En définissant le nombre de lignes et de colonnes en fonction de la taille du fichier, on garantit une gestion dynamique des grilles de différentes tailles, avec un maximum de 100x100 pour éviter la surcharge mémoire.
+
+    \item \textbf{Pré-traitement du Mot Cible :} Pour permettre une recherche insensible à la casse, la fonction \texttt{remove\_lowercase} transforme toutes les lettres du mot cible en majuscules. Ce pré-traitement simplifie la comparaison, car la grille est traitée sans tenir compte de la casse des lettres, et permet de rechercher de manière uniforme dans la grille, quelle que soit l'écriture du mot initialement.
+\end{itemize}
+
+\paragraph{Algorithme de Recherche et de Comparaison de Mot}
+
+Le cœur de l'algorithme de recherche réside dans le parcours de chaque case de la grille en vérifiant toutes les directions possibles (horizontale, verticale, et diagonales). Cette méthode repose sur deux concepts :
+
+\begin{itemize}
+    \item \textbf{Parcours Multi-Directionnel :} Huit directions sont définies pour explorer chaque point de départ possible dans la grille. Pour chaque case initiale, un ensemble de valeurs de \texttt{dir\_x} et \texttt{dir\_y} sont associées à une direction :
+    \begin{itemize}
+        \item \texttt{dir\_x} et \texttt{dir\_y} permettent de définir les déplacements sur la grille (par exemple, 1,1 pour se déplacer en diagonale vers le bas à droite).
+        \item La boucle \texttt{for} itère de 0 à 7, où chaque entier représente l’une des directions.
+    \end{itemize}
+
+    \item \textbf{Recherche Incrémentale de Séquences :} La fonction \texttt{starts\_with} permet de vérifier si le début d’une chaîne donnée correspond au mot cible. Cela est effectué en parcourant la grille à partir de chaque case de départ possible, dans la direction actuelle. La comparaison commence avec le premier caractère et se poursuit en ajoutant un caractère supplémentaire à chaque itération de la boucle.
+    \begin{itemize}
+        \item Si \texttt{starts\_with} renvoie 2, cela signifie que la séquence en cours correspond exactement au mot cible : le programme affiche alors les coordonnées de départ et d'arrivée.
+        \item En revanche, si \texttt{starts\_with} retourne 0, l'algorithme passe à une autre direction ou à un autre point de départ.
+    \end{itemize}
+
+    \item \textbf{Gestion des Limites de la Grille :} Lors de l’extension de la séquence dans une direction spécifique, des vérifications s'assurent que la recherche reste dans les limites de la grille. Cela empêche les débordements en dehors de la matrice (i.e., éviter de lire des données invalides).
+\end{itemize}
+
+
+\subsection{Réseau de neurones}
+
+\paragraph{Technologies et bibliothèques utilisées}
+Aucune bibliothèque externe n’a été employée (hormis string.h, maths.h etc.)afin de mieux comprendre et contrôler chaque étape du réseau de neurones, de la construction des couches à l'entraînement.
+
+\paragraph{Structure du réseau de neurones}
+Le réseau de neurones comporte trois couches:
+
+\begin{itemize}
+    \item \textbf{Couche d’entrée :} 2 neurones représentant les deux entrées binaires (ex. [0, 1]).
+    \item \textbf{Couche cachée :} 2 neurones, permettant de capter des non-linéarités.
+    \item \textbf{Couche de sortie :} 1 neurone, générant la sortie binaire (1 ou 0)
+\end{itemize}
+
+Les neurones sont dotés d’un biais (poids ajustable), d’une fonction d’activation (ReLU pour la couche cachée et Sigmoïde pour la sortie) et de poids vers la couche suivante.
+
+Chaque neurone est défini dans une structure \texttt{neuron\_t} contenant ses attributs principaux :
+
+\begin{itemize}
+    \item \textbf{actv :} activation de sortie du neurone.
+    \item \textbf{out\_weights :} liste des poids vers les neurones de la couche suivante.
+    \item \textbf{bias :} biais du neurone, initialisé aléatoirement.
+\end{itemize}
+
+Chaque couche (\texttt{layer\_t}) stocke un tableau de \texttt{neuron\_t}, correspondant au nombre de neurones spécifié par \texttt{NEURONS\_NUMBER}.
+
+\paragraph{Initialisation et création du réseau}
+La fonction \texttt{create\_network} initialise chaque couche en respectant l’architecture prédéfinie (\texttt{NEURONS\_NUMBER}), et elle attribue les poids et biais aléatoirement pour briser la symétrie et favoriser l’apprentissage.
+
+\begin{verbatim}
+layer create_layer(int neuron_number) {
+    neuron *neurons = calloc(neuron_number, sizeof(neuron));
+    layer lay;
+    lay.neuron_number = neuron_number;
+    lay.neurons = neurons;
+    return lay;
+}
+\end{verbatim}
+
+\paragraph{Propagation avant (Forward Propagation)}
+
+La propagation avant (fonction \texttt{forward\_prop}) passe les valeurs d’activation d’une couche à l’autre :
+
+\begin{itemize}
+    \item \textbf{Calcul de la somme pondérée :} Pour chaque neurone de la couche courante, une valeur \( z \) est calculée en fonction des activations de la couche précédente.
+    \item \textbf{Application de la fonction d’activation :}
+    \begin{itemize}
+        \item \textbf{ReLU pour les neurones cachés :} activations \( z \) négatives sont fixées à zéro.
+        \item \textbf{Sigmoïde pour le neurone de sortie :} normalise la sortie entre 0 et 1, utile pour un problème binaire.
+    \end{itemize}
+\end{itemize}
+
+\paragraph{Rétropropagation (Backpropagation)}
+
+La rétropropagation (fonction \texttt{back\_prop}) calcule l’erreur et ajuste les poids en fonction de la dérivée de l’erreur (descente de gradient) :
+
+\begin{itemize}
+    \item \textbf{Erreur en sortie :} calculée par rapport à la sortie souhaitée (\texttt{DESIRED\_OUTPUTS}).
+    \item \textbf{Propagation de l’erreur dans chaque couche,} ajustant les poids et biais pour minimiser l’erreur globale.
+    \item \textbf{Mise à jour des poids et biais en fonction de \texttt{LEARNING\_RATE}.}
+\end{itemize}
+
+\paragraph{Entraînement et sauvegarde des poids}
+
+Pour entraîner le réseau, une boucle d’entraînement exécute \texttt{EPOCHS} itérations de propagation avant et arrière sur chaque entrée de l’opération XOR. L'erreur quadratique moyenne est affichée périodiquement, et le réseau est réinitialisé si cette erreur reste élevée après de nombreuses itérations.
+
+Les poids et biais finaux sont sauvegardés dans un fichier texte avec la fonction \texttt{save\_weights} pour éviter de réentraîner le réseau à chaque exécution.
+
+Cette structure permet une reconstruction rapide du réseau et une amélioration de la compréhension des concepts clés comme l'initialisation des poids, la propagation avant/arrière et l'optimisation des paramètres du modèle.
+
