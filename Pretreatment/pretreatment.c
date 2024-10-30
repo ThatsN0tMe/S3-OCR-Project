@@ -48,27 +48,6 @@ void contrast(SDL_Surface *surface, float contrastFactor) {
     }
 }
 
-void brightness(SDL_Surface *surface, int brightness) {
-    int width = surface->w;
-    int height = surface->h;
-    Uint32 *pixels = (Uint32 *)surface->pixels;
-
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            Uint32 pixel = pixels[y * width + x];
-            Uint8 r, g, b;
-
-            SDL_GetRGB(pixel, surface->format, &r, &g, &b);
-
-            r = SDL_clamp(r + brightness, 0, 255);
-            g = SDL_clamp(g + brightness, 0, 255);
-            b = SDL_clamp(b + brightness, 0, 255);
-
-            pixels[y * width + x] = SDL_MapRGB(surface->format, r, g, b);
-        }
-    }
-}
-
 void binarize(SDL_Surface *surface, Uint8 threshold) {
     Uint32* pixels = (Uint32*)surface->pixels;
     int width = surface->w;
@@ -82,9 +61,10 @@ void binarize(SDL_Surface *surface, Uint8 threshold) {
             
             Uint8 luminance = (Uint8)(0.299 * r + 0.587 * g + 0.114 * b);
 
-            if (luminance >= threshold) {
+            if (luminance >= threshold)
                 pixels[y * width + x] = SDL_MapRGB(surface->format, 255, 255, 255);
-            }
+            else
+                pixels[y * width + x] = SDL_MapRGB(surface->format, 0, 0, 0);
         }
     }
 }
@@ -206,7 +186,7 @@ typedef struct {
     int count;
 } Color;
 
-Uint32 get_major_color(SDL_Surface *surface) {
+Uint32 get_major_color(SDL_Surface *surface, int white) {
     int width = surface->w;
     int height = surface->h;
     Uint32 *pixels = (Uint32 *)surface->pixels;
@@ -248,14 +228,25 @@ Uint32 get_major_color(SDL_Surface *surface) {
         }
     }
 
+    int white_limit = 227;
     int max_count = 0;
     Uint8 dominant_r = 0, dominant_g = 0, dominant_b = 0;
     for (int i = 0; i < color_count; i++) {
         if (colorFreqs[i].count > max_count) {
-            max_count = colorFreqs[i].count;
-            dominant_r = colorFreqs[i].r;
-            dominant_g = colorFreqs[i].g;
-            dominant_b = colorFreqs[i].b;
+            if (white) {
+                max_count = colorFreqs[i].count;
+                dominant_r = colorFreqs[i].r;
+                dominant_g = colorFreqs[i].g;
+                dominant_b = colorFreqs[i].b;
+            }
+            else if (colorFreqs[i].r <= white_limit ||
+            colorFreqs[i].g <= white_limit ||
+            colorFreqs[i].b <= white_limit) {
+                max_count = colorFreqs[i].count;
+                dominant_r = colorFreqs[i].r;
+                dominant_g = colorFreqs[i].g;
+                dominant_b = colorFreqs[i].b;
+            }
         }
     }
 
@@ -302,7 +293,6 @@ double variance(SDL_Surface *surface) {
     return variance;
 }
 
-
 void ApplyPretreatment(char *filepath) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         printf("SDL initialization error: %s\n", SDL_GetError());
@@ -334,19 +324,28 @@ void ApplyPretreatment(char *filepath) {
     }
 
     grayscale(surface);
-    int need_filter = variance(surface) < 1600;
-    contrast(surface, 60);
-    brightness(surface, -100);
-    //gaussian(surface, 5);
-    if (need_filter)
-        median(surface, 2);
+    
+    Uint32 major_color;
 
-    Uint32 major_color = get_major_color(surface);
+    if (variance(surface) < 500) {
+        contrast(surface, 50);
+        median(surface, 3);
+        major_color = get_major_color(surface, 1);
+    }
+    else if (variance(surface) < 1600) {
+        contrast(surface, 90);
+        gaussian(surface, 5);
+        major_color = get_major_color(surface, 0);
+    }
+    else {
+        contrast(surface, 50);
+        major_color = get_major_color(surface, 1);    
+    }
+
     Uint8 r, g, b;
     SDL_GetRGB(major_color, surface->format, &r, &g, &b);
+    printf("r: %d\ng: %d\nb: %d\n", r, g, b);
     binarize(surface, 0.299 * r + 0.587 * g + 0.114 * b);
-    //gaussian(surface, 3);
-    //median(surface, 2);
 
     if (SDL_SaveBMP(surface, filepath) != 0) {
         printf("Image saving error: %s\n", SDL_GetError());
