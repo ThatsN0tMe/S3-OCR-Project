@@ -58,7 +58,7 @@ void display_image_options() {
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_add(GTK_CONTAINER(window), box);
 
-    // Button "Convert to Grayscale"
+    // Button "Pretreatment"
     GtkWidget *button_grayscale = gtk_button_new_with_label("Pretreatment");
     g_signal_connect(button_grayscale, "clicked", G_CALLBACK(pretreatment), NULL);
     gtk_box_pack_start(GTK_BOX(box), button_grayscale, TRUE, TRUE, 0);
@@ -106,8 +106,8 @@ void select_file(GtkWidget *button, gpointer user_data) {
         char* sourcepath = gtk_file_chooser_get_filename(chooser);
         filepath = getDestPath(sourcepath);
         
-        if (filepath == NULL || cloneFile(sourcepath, filepath) == -1)
-            return -1;
+        if (filepath == NULL || clone_file(sourcepath, filepath) == -1)
+            return;
 
         display_image_options();
         gtk_button_set_label(GTK_BUTTON(button), "File open !");
@@ -153,7 +153,7 @@ char* getDestPath(const char* sourcepath) {
 
 
 //ca va clone le fichier originel dans le nouveau path au cas ou un golmon rotate avant d'appliquer le pretraitement
-int cloneFile(const char *src_path, const char *dest_path) {
+int clone_file(const char *src_path, const char *dest_path) {
     FILE *src = fopen(src_path, "rb");
     FILE *dest = fopen(dest_path, "wb");
 
@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
 
     //Window
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL); //Create a window
-    gtk_window_set_title(GTK_WINDOW(window), "Aflelou"); //Window name
+    gtk_window_set_title(GTK_WINDOW(window), "Afflelou"); //Window name
     gtk_window_set_default_size(GTK_WINDOW(window), 1000, 750); //Window length
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL); //Closing
 
