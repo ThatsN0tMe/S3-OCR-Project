@@ -345,4 +345,6 @@ void ApplyPretreatment(char *filepath) {
     else {
         printf("Image processed successfully and saved as '%s'.\n", filepath);
     }
+
+    SDL_FreeSurface(newSurface);
 }

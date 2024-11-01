@@ -3,6 +3,9 @@
 
 #include <SDL2/SDL.h>
 
-int** brightness(char* filepath);
+double** getBrightness(SDL_Surface* surface);
+void detectEdges(SDL_Surface* surface);
+void detectLines(char* filepath);
+void drawLine(SDL_Renderer* renderer, double rho, double theta, int h, int w);
 
 #endif

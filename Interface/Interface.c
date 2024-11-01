@@ -12,7 +12,6 @@
 
 
 
-
 void display_home() {
     //Remove all widget in window
     GList *children = gtk_container_get_children(GTK_CONTAINER(window));
@@ -62,7 +61,7 @@ void display_image_options() {
 
     //Button "Detect Lines"
     GtkWidget *button_detect = gtk_button_new_with_label("Detect Lines");
-    g_signal_connect(button_detect, "clicked", G_CALLBACK(detectLines), NULL);
+    g_signal_connect(button_detect, "clicked", G_CALLBACK(lineDetection), NULL);
     gtk_box_pack_start(GTK_BOX(box), button_detect, TRUE, TRUE, 0);
 
     // Button "Back"
@@ -136,7 +135,6 @@ char* getDestPath(const char* sourcepath) {
         startIndex--;
     }
 
-    printf("Original Length : %d  |  Total Length : %d\n", index + 1, startIndex + index - endIndex + 10);
 
     res = calloc(startIndex + index - endIndex + 10, 1);
 
@@ -145,8 +143,6 @@ char* getDestPath(const char* sourcepath) {
     }
     memcpy(res + startIndex, dir, 9);
     memcpy(res + startIndex + 9, sourcepath + endIndex, index - endIndex);
-
-    printf("%s\n", res);
 
     return res;
 }

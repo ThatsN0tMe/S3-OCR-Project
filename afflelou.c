@@ -24,10 +24,9 @@ void doRotation() {
     create_rotate_window(filepath);
 }
 
-void detectLines() {
-    brightness(filepath);
+void lineDetection() {
+    detectLines(filepath);
 }
-
 
 
 void initSDL() {

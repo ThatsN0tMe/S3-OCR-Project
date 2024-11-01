@@ -5,7 +5,7 @@
 extern char* filepath;
 void applyPreprocess();
 void doRotation();
-void detectLines();
+void lineDetection();
 void initSDL();
 void quitSDL();
 
