@@ -9,14 +9,9 @@
 static GdkPixbuf *original_pixbuf;
 static GtkWidget *original_image;
 static gdouble current_angle = 0;
-char *filename = "";
+char *filename = NULL;
 
 void rotate(const char *filepath, double angle) {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf("SDL initialization error: %s\n", SDL_GetError());
-        return;
-    }
-
     SDL_Surface *originalSurface = IMG_Load(filepath);
     if (!originalSurface) {
         printf("Error loading image: %s\n", IMG_GetError());
