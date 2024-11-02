@@ -36,12 +36,17 @@ int** detectEdges(SDL_Surface* surface) {
 
     if (matrix == NULL) return NULL;
 
+    
+    Uint32* pixels = (Uint32*)surface->pixels;
+
     for (int y = 1; y < height - 1; y++) {
         res[y-1] = malloc((width - 2) * sizeof(int));
 
         for (int x = 1; x < width - 1; x++) {
-            res[y-1][x-1] = (int)sqrt(pow(-1 * matrix[y-1][x-1] - 2 * matrix[y][x-1] - 1 * matrix[y+1][x-1] + matrix[y-1][x+1] + 2 * matrix[y][x+1] + matrix[y+1][x+1], 2)
+            int temp = (int)sqrt(pow(-1 * matrix[y-1][x-1] - 2 * matrix[y][x-1] - 1 * matrix[y+1][x-1] + matrix[y-1][x+1] + 2 * matrix[y][x+1] + matrix[y+1][x+1], 2)
                              + pow(-1 * matrix[y-1][x-1] - 2 * matrix[y-1][x] - 1 * matrix[y-1][x+1] + matrix[y+1][x-1] + 2 * matrix[y+1][x] + matrix[y+1][x+1], 2)) / 4;
+            res[y-1][x-1] = temp;
+            pixels[y * width + x] = SDL_MapRGB(surface->format, temp, temp, temp);
         }
     }
 
@@ -142,7 +147,7 @@ void drawLine(SDL_Surface* surface, double rho, double theta, int h, int w) {
     }
     else {
 
-        theta *= M_PI / 180;
+        theta *= (double)M_PI / 180.0;
         double cos_theta = cos(theta), sin_theta = sin(theta);
 
         y1 = rho / sin_theta;
