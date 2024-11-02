@@ -1,13 +1,20 @@
-CC = gcc
-CFLAGS = -Wall -Wextra -std=c99
+CC := gcc
+CFLAGS := -Wall -Wextra
+TARGET := Afflelou
+OBJS := afflelou.o Pretreatment/pretreatment.o Rotate/rotate.o
 
-OBJ = solver.o
-EXEC = solver
+SDL_LIBS := -lSDL2 -lSDL2_image -lm
 
+GTK_CFLAGS := $(shell pkg-config --cflags gtk+-3.0)
+GTK_LIBS := $(shell pkg-config --libs gtk+-3.0)
 
-$(EXEC): $(OBJ)
+%.o: %.c
+	$(CC) $(CFLAGS) $(GTK_CFLAGS) -c $< -o $@
 
-clean:
-	rm -f $(OBJ) $(EXEC)
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) $(GTK_CFLAGS) -o $(TARGET) $(OBJS) $(GTK_LIBS) $(SDL_LIBS)
+	./Afflelou
 
 .PHONY: clean
+clean:
+	$(RM) $(TARGET) $(OBJS)
