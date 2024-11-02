@@ -182,7 +182,7 @@ void ApplyPretreatment(char *filepath) {
         SDL_Quit();
     }
 
-    grayscale(surface);
+    grayscale(newSurface);
 
     if (standard_deviation(surface) < 40) {
         gaussian(surface, 5);
