@@ -1,2 +1,28 @@
-OCR S3 Project
-Is an awesome project
+
+                              OCR S3 Project
+-----------------------------------------------------------------------------
+
+                                Description
+
+This project is crossword solver based on a photo. The image is cleaned and,
+using AI, it will recognized words and letters. At the end your crossword
+get solved;
+
+-----------------------------------------------------------------------------
+
+                                HOW TO USE
+
+- Ecexute the binary file "Afflelou" -> $ ./Afflelou
+- Click on the "Load image" button
+- Load your crossword image format png or jpg
+
+!! Your images will be put in Grid/Modified !!
+
+- Click "preprocess" so your image get clean
+- Click "detect line" to detect your lines on the grid
+- Click "rotate" and rotate your image for your grid to be in the correct way
+- Your done !
+
+!! OCR is comming soon !!
+
+-----------------------------------------------------------------------------
