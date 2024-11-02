@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "stdlib.h": "c",
-        "sdl_image.h": "c",
-        "sdl.h": "c"
-    }
-}
