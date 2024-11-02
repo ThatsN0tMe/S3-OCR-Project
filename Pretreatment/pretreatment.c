@@ -184,16 +184,16 @@ void ApplyPretreatment(char *filepath) {
 
     grayscale(newSurface);
 
-    if (standard_deviation(surface) < 40) {
-        gaussian(surface, 5);
-        contrast(surface, 52);
-        binarize_image(surface, luminance(surface));
-        gaussian(surface, 5);
-        contrast(surface, 255);
+    if (standard_deviation(newSurface) < 40) {
+        gaussian(newSurface, 5);
+        contrast(newSurface, 52);
+        binarize_image(newSurface, luminance(newSurface));
+        gaussian(newSurface, 5);
+        contrast(newSurface, 255);
     }
     else {
-        binarize_image(surface, luminance(surface));
-        contrast(surface, 255);
+        binarize_image(newSurface, luminance(newSurface));
+        contrast(newSurface, 255);
     }
 
     if (SDL_SaveBMP(newSurface, filepath) != 0) {
