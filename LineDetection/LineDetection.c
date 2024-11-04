@@ -5,6 +5,11 @@
 #include <SDL2/SDL_image.h>
 #include <gtk/gtk.h>
 #include "LineDetection.h"
+#include "../Rotate/rotate.h"
+
+
+int lowestLineY = 0;
+double lowestLineAngle = 0;
 
 
 double** getBrightness(SDL_Surface* surface) {
@@ -94,8 +99,7 @@ void detectLines(char* filepath) {
             for (int theta = 0; theta < 180; theta++) {
 
                 rho = x * cos(theta * M_PI / 180) + y * sin(theta * M_PI / 180);
-                accumulatorArray[rho + size][theta]++;
-                if (accumulatorArray[rho + size][theta] > threshold) {
+                if (++accumulatorArray[rho + size][theta] > threshold) {
                     threshold = accumulatorArray[rho + size][theta];
                 }
             }
@@ -122,6 +126,16 @@ void detectLines(char* filepath) {
     else {
         printf("Image processed successfully and saved as '%s'.\n", filepath);
     }
+
+
+    if ((int)lowestLineAngle % 90 != 0) {
+        if (lowestLineAngle > 90) {
+            rotate(filepath, 90 - lowestLineAngle);
+        }
+        else {
+            rotate(filepath, lowestLineAngle);
+        }
+    }
 }
 
 
@@ -141,8 +155,9 @@ void drawLine(SDL_Surface* surface, double rho, double theta, int h, int w) {
     }
     else {
 
-        theta *= (double)M_PI / 180.0;
-        double cos_theta = cos(theta), sin_theta = sin(theta);
+        double rad_theta = theta * (double)M_PI / 180.0,
+               cos_theta = cos(rad_theta),
+               sin_theta = sin(rad_theta);
 
         y1 = rho / sin_theta;
         if (y1 < 0) {
@@ -169,6 +184,11 @@ void drawLine(SDL_Surface* surface, double rho, double theta, int h, int w) {
         else {
             x2 = w;
         }
+    }
+
+    if (y1 + y2 > lowestLineY) {
+        lowestLineY = y1 + y2;
+        lowestLineAngle = theta;
     }
 
     drawLineOnSurface(surface, x1, y1, x2, y2);
