@@ -106,7 +106,7 @@ void detectLines(char* filepath) {
         }
     }
 
-    threshold -= threshold / 5;
+    threshold -= threshold / 4;
 
     for (int rho = 0; rho < size * 2; rho++) {
         for (int theta = 0; theta < 180; theta++) {

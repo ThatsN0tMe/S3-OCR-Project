@@ -117,6 +117,9 @@ void binarize() {
             if (luminance >= threshold) {
                 pixels[y * width + x] = SDL_MapRGB(surface->format, 255, 255, 255);
             }
+            else {
+                pixels[y * width + x] = SDL_MapRGB(surface->format, 0, 0, 0);
+            }
         }
     }
 
