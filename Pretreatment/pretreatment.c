@@ -1,13 +1,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <gtk/gtk.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "pretreatment.h"
+#include "../Interface/Interface.h"
 
 
+char* path = NULL;
+SDL_Surface* surface = NULL;
 
-void grayscale(SDL_Surface *surface) {
+
+void save() {
+    if (SDL_SaveBMP(surface, path) != 0) {
+        printf("Image saving error: %s\n", SDL_GetError());
+    }
+    else {
+        printf("Image processed successfully and saved as '%s'.\n", path);
+    }
+    create_preprocess_window(path);
+}
+
+
+void grayscale() {
+
     Uint32* pixels = (Uint32*)surface->pixels;
     int width = surface->w;
     int height = surface->h;
@@ -25,13 +42,16 @@ void grayscale(SDL_Surface *surface) {
             pixels[y * width + x] = pixelGris;
         }
     }
+
+    save();
 }
 
-void contrast(SDL_Surface *surface, float contrastFactor) {
+void contrast() {
     Uint8 r, g, b;
     Uint32 *pixels = (Uint32 *)surface->pixels;
     int width = surface->w;
     int height = surface->h;
+    float contrastFactor = 60;
 
     float factor = (259 * (contrastFactor + 255)) / (255 * (259 - contrastFactor));
 
@@ -48,11 +68,14 @@ void contrast(SDL_Surface *surface, float contrastFactor) {
             pixels[y * width + x] = SDL_MapRGB(surface->format, r, g, b);
         }
     }
+
+    save();
 }
 
-void brightness(SDL_Surface *surface, int brightness) {
+void brightness() {
     int width = surface->w;
     int height = surface->h;
+    int brightness = -100;
     Uint32 *pixels = (Uint32 *)surface->pixels;
 
     for (int y = 0; y < height; y++) {
@@ -69,12 +92,19 @@ void brightness(SDL_Surface *surface, int brightness) {
             pixels[y * width + x] = SDL_MapRGB(surface->format, r, g, b);
         }
     }
+
+    save();
 }
 
-void binarize(SDL_Surface *surface, Uint8 threshold) {
+void binarize() {
+    Uint32 major_color = get_major_color();
+    Uint8 r, g, b;
+    SDL_GetRGB(major_color, surface->format, &r, &g, &b);
+
+    Uint8 threshold =  0.299 * r + 0.587 * g + 0.114 * b;
     Uint32* pixels = (Uint32*)surface->pixels;
-    int width = surface->w;
-    int height = surface->h;
+    int width = surface->w,
+        height = surface->h;
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
@@ -89,11 +119,14 @@ void binarize(SDL_Surface *surface, Uint8 threshold) {
             }
         }
     }
+
+    save();
 }
 
-void gaussian(SDL_Surface *surface, int kernel_size) {
-    int width = surface->w;
-    int height = surface->h;
+void gaussian() {
+    int width = surface->w,
+        height = surface->h,
+        kernel_size = 3;
     Uint32 *pixels = (Uint32 *)surface->pixels;
     Uint32 *output_pixels = (Uint32 *)malloc(width * height * sizeof(Uint32));
 
@@ -146,11 +179,13 @@ void gaussian(SDL_Surface *surface, int kernel_size) {
     memcpy(pixels, output_pixels, width * height * sizeof(Uint32));
     free(output_pixels);
     free(kernel);
+    save();
 }
 
-void median(SDL_Surface *surface, int kernel_size) {
-    int width = surface->w;
-    int height = surface->h;
+void median() {
+    int width = surface->w,
+        height = surface->h,
+        kernel_size = 2;
     Uint32 *pixels = (Uint32 *)surface->pixels;
     Uint32 *output_pixels = (Uint32 *)malloc(width * height * sizeof(Uint32));
     int half_kernel = kernel_size / 2;
@@ -201,6 +236,7 @@ void median(SDL_Surface *surface, int kernel_size) {
 
     memcpy(pixels, output_pixels, width * height * sizeof(Uint32));
     free(output_pixels);
+    save();
 }
 
 typedef struct {
@@ -208,7 +244,7 @@ typedef struct {
     int count;
 } Color;
 
-Uint32 get_major_color(SDL_Surface *surface) {
+Uint32 get_major_color() {
     int width = surface->w;
     int height = surface->h;
     Uint32 *pixels = (Uint32 *)surface->pixels;
@@ -262,6 +298,7 @@ Uint32 get_major_color(SDL_Surface *surface) {
     }
 
     free(colorFreqs);
+    save();
 
     return SDL_MapRGB(surface->format, dominant_r, dominant_g, dominant_b);
 }
@@ -300,6 +337,7 @@ double variance(SDL_Surface *surface) {
         }
     }
 
+    save();
     double variance = sum_squared_diff / num_pixels;
     return variance;
 }
@@ -307,44 +345,38 @@ double variance(SDL_Surface *surface) {
 
 void ApplyPretreatment(char *filepath) {
 
+    path = filepath;
+
     SDL_Surface* originalSurface = IMG_Load(filepath);
     if (!originalSurface) {
         printf("Image loading error: %s\n", IMG_GetError());
         return;
     }
 
-    SDL_Surface* newSurface = SDL_ConvertSurfaceFormat(originalSurface, SDL_PIXELFORMAT_ARGB8888, 0);
+    surface = SDL_ConvertSurfaceFormat(originalSurface, SDL_PIXELFORMAT_ARGB8888, 0);
     SDL_FreeSurface(originalSurface);
 
-    if (!newSurface) {
+    if (!surface) {
         printf("Image format conversion error: %s\n", SDL_GetError());
         IMG_Quit();
         SDL_Quit();
     }
+    
+    create_preprocess_window(path);
 
-    grayscale(newSurface);
-    int need_filter = variance(newSurface) < 1600;
-    contrast(newSurface, 60);
-    brightness(newSurface, -100);
+    /*grayscale(surface);
+    int need_filter = variance(surface) < 1600;
+    contrast(surface, 60);
+    brightness(surface, -100);
     //gaussian(surface, 5);
     if (need_filter)
-        median(newSurface, 2);
+        median(surface, 2);
 
 
-    Uint32 major_color = get_major_color(newSurface);
+    Uint32 major_color = get_major_color(surface);
     Uint8 r, g, b;
     SDL_GetRGB(major_color, newSurface->format, &r, &g, &b);
-    binarize(newSurface, 0.299 * r + 0.587 * g + 0.114 * b);
+    binarize(surface, 0.299 * r + 0.587 * g + 0.114 * b);
     //gaussian(surface, 3);
-    //median(surface, 2);
-
-
-    if (SDL_SaveBMP(newSurface, filepath) != 0) {
-        printf("Image saving error: %s\n", SDL_GetError());
-    }
-    else {
-        printf("Image processed successfully and saved as '%s'.\n", filepath);
-    }
-
-    SDL_FreeSurface(newSurface);
+    //median(surface, 2);*/
 }

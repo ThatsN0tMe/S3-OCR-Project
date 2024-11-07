@@ -3,14 +3,16 @@
 
 #include <SDL2/SDL.h>
 
-void grayscale(SDL_Surface *surface);
-void contrast(SDL_Surface *surface, float contrastFactor);
-void binarize(SDL_Surface *surface, Uint8 threshold);
-void gaussian(SDL_Surface *surface, int kernel_size);
-void median(SDL_Surface *surface, int kernel_size);
-Uint32 get_major_color(SDL_Surface *surface);
-double variance(SDL_Surface *surface);
+void save();
+void grayscale();
+void contrast();
+void binarize();
+void gaussian();
+void median();
+void brightness();
+Uint32 get_major_color();
+double variance();
 
-void ApplyPretreatment(char *filepath);
+void ApplyPretreatment(char* filepath);
 
 #endif

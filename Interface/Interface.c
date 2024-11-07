@@ -7,9 +7,9 @@
 
 #include "Interface.h"
 #include "../afflelou.h"
+#include "../Pretreatment/pretreatment.h"
 
 #define presentationText "Bienvenue dans l'application d'analyse de grilles de mots !"
-
 
 
 void display_home() {
@@ -19,7 +19,6 @@ void display_home() {
         gtk_widget_destroy(GTK_WIDGET(child->data));
     }
     g_list_free(children);
-
     //Box
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0); //Create a box
     gtk_container_add(GTK_CONTAINER(window), box); //Add box to window
@@ -72,6 +71,61 @@ void display_image_options() {
     gtk_widget_show_all(window);
 }
 
+
+void create_preprocess_window(char *filepath) {
+    //Remove all widget in window
+    GList *children = gtk_container_get_children(GTK_CONTAINER(window));
+    for (GList *child = children; child != NULL; child = child->next) {
+        gtk_widget_destroy(GTK_WIDGET(child->data));
+    }
+    g_list_free(children);
+    
+    GdkPixbuf* original_pixbuf = gdk_pixbuf_new_from_file(filepath, NULL);
+    if (original_pixbuf == NULL) {
+        g_print("Error: Could not load image from file %s\n", filepath);
+        return;
+    }
+
+    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
+    gtk_container_add(GTK_CONTAINER(window), vbox);
+
+    GtkWidget *original_image = gtk_image_new_from_pixbuf(original_pixbuf);
+    gtk_box_pack_start(GTK_BOX(vbox), original_image, TRUE, TRUE, 0);
+
+    GtkWidget *hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 1);
+
+
+    GtkWidget *button_grayscale = gtk_button_new_with_label("Grayscale");
+    g_signal_connect(button_grayscale, "clicked", G_CALLBACK(grayscale), NULL);
+    gtk_box_pack_start(GTK_BOX(hbox), button_grayscale, TRUE, TRUE, 1);
+
+    GtkWidget *button_contrast = gtk_button_new_with_label("Contrast");
+    g_signal_connect(button_contrast, "clicked", G_CALLBACK(contrast), NULL);
+    gtk_box_pack_start(GTK_BOX(hbox), button_contrast, TRUE, TRUE, 1);
+
+    GtkWidget *button_binarize = gtk_button_new_with_label("Binarize");
+    g_signal_connect(button_binarize, "clicked", G_CALLBACK(binarize), NULL);
+    gtk_box_pack_start(GTK_BOX(hbox), button_binarize, TRUE, TRUE, 1);
+
+    GtkWidget *button_brightness = gtk_button_new_with_label("Brightness");
+    g_signal_connect(button_brightness, "clicked", G_CALLBACK(brightness), NULL);
+    gtk_box_pack_start(GTK_BOX(hbox), button_brightness, TRUE, TRUE, 1);
+
+    GtkWidget *button_gaussian = gtk_button_new_with_label("Gaussian");
+    g_signal_connect(button_gaussian, "clicked", G_CALLBACK(gaussian), NULL);
+    gtk_box_pack_start(GTK_BOX(hbox), button_gaussian, TRUE, TRUE, 1);
+
+    GtkWidget *button_median = gtk_button_new_with_label("Median");
+    g_signal_connect(button_median, "clicked", G_CALLBACK(median), NULL);
+    gtk_box_pack_start(GTK_BOX(hbox), button_median, TRUE, TRUE, 1);
+
+    GtkWidget *button_back = gtk_button_new_with_label("Back");
+    g_signal_connect(button_back, "clicked", G_CALLBACK(display_image_options), window);
+    gtk_box_pack_start(GTK_BOX(hbox), button_back, FALSE, FALSE, 0);
+
+    gtk_widget_show_all(window);
+}
 
 void select_file(GtkWidget *button, gpointer user_data) {
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
