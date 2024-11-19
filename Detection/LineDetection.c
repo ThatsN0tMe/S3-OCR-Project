@@ -4,8 +4,9 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <gtk/gtk.h>
-#include "LineDetection.h"
+#include "Detection.h"
 #include "../Rotate/rotate.h"
+#include "../afflelou.h"
 
 
 int lowestLineY = 0;
@@ -59,7 +60,9 @@ int** detectEdges(SDL_Surface* surface) {
 }
 
 
-void detectLines(char* filepath) {
+void detectLines() {
+
+    if (filepath == NULL) return;
 
     SDL_Surface *surface = IMG_Load(filepath);
     if (!surface) {

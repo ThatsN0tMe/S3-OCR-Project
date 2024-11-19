@@ -1,7 +1,7 @@
 CC := gcc
 CFLAGS := -Wall -Wextra
 TARGET := Afflelou
-OBJS := afflelou.o Pretreatment/pretreatment.o Rotate/rotate.o Interface/Interface.o LineDetection/LineDetection.o
+OBJS := afflelou.o Pretreatment/pretreatment.o Rotate/rotate.o Interface/Interface.o Detection/LineDetection.o Detection/Detection.o
 
 SDL_LIBS := -lSDL2 -lSDL2_image -lm
 

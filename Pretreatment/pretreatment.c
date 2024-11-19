@@ -12,7 +12,12 @@ char* path = NULL;
 SDL_Surface* surface = NULL;
 
 
-void save() {
+void save() {    
+    if (path == NULL) {
+        printf("Filepath is undefined");
+        return;
+    }
+
     if (SDL_SaveBMP(surface, path) != 0) {
         printf("Image saving error: %s\n", SDL_GetError());
     }
@@ -346,7 +351,7 @@ double variance(SDL_Surface *surface) {
 }
 
 
-void ApplyPretreatment(char *filepath) {
+void pretreatment(char *filepath) {
 
     path = filepath;
 

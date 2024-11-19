@@ -7,6 +7,7 @@
 
 #include "Interface.h"
 #include "../afflelou.h"
+#include "../Detection/Detection.h"
 #include "../Pretreatment/pretreatment.h"
 
 #define presentationText "Bienvenue dans l'application d'analyse de grilles de mots !"
@@ -58,9 +59,9 @@ void display_image_options() {
     g_signal_connect(button_rotate, "clicked", G_CALLBACK(doRotation), NULL);
     gtk_box_pack_start(GTK_BOX(box), button_rotate, TRUE, TRUE, 0);
 
-    //Button "Detect Lines"
-    GtkWidget *button_detect = gtk_button_new_with_label("Detect Lines");
-    g_signal_connect(button_detect, "clicked", G_CALLBACK(lineDetection), NULL);
+    //Button "Detection"
+    GtkWidget *button_detect = gtk_button_new_with_label("Detection");
+    g_signal_connect(button_detect, "clicked", G_CALLBACK(detectElements), NULL);
     gtk_box_pack_start(GTK_BOX(box), button_detect, TRUE, TRUE, 0);
 
     // Button "Back"
@@ -126,6 +127,33 @@ void create_preprocess_window(char *filepath) {
 
     gtk_widget_show_all(window);
 }
+
+
+void create_detection_window(char* filepath) {
+    GList *children = gtk_container_get_children(GTK_CONTAINER(window));
+    for (GList *child = children; child != NULL; child = child->next) {
+        gtk_widget_destroy(GTK_WIDGET(child->data));
+    }
+    g_list_free(children);
+
+    //Box
+    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_container_add(GTK_CONTAINER(window), box);
+
+    //Button "LineDetection"
+    GtkWidget *button_detect = gtk_button_new_with_label("Detection");
+    g_signal_connect(button_detect, "clicked", G_CALLBACK(detectLines), NULL);
+    gtk_box_pack_start(GTK_BOX(box), button_detect, TRUE, TRUE, 0);
+
+    // Button "Back"
+    GtkWidget *button_back = gtk_button_new_with_label("Back");
+    g_signal_connect(button_back, "clicked", G_CALLBACK(display_image_options), window);
+    gtk_box_pack_start(GTK_BOX(box), button_back, FALSE, FALSE, 0);
+
+    gtk_widget_show_all(window);
+}
+
+
 
 void select_file(GtkWidget *button, gpointer user_data) {
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;

@@ -9,23 +9,24 @@
 #include "Rotate/rotate.h"
 #include "Interface/Interface.h"
 #include "Pretreatment/pretreatment.h"
-#include "LineDetection/LineDetection.h"
+#include "Detection/Detection.h"
 
 
 char *filepath = NULL;
 GtkWidget *window = NULL;
 
-
 void applyPreprocess() {
-    ApplyPretreatment(filepath);
+    pretreatment(filepath);
+    create_preprocess_window(filepath);
 }
 
 void doRotation() {
     create_rotate_window(filepath);
 }
 
-void lineDetection() {
-    detectLines(filepath);
+void detectElements() {
+    detection(filepath);
+    create_detection_window(filepath);
 }
 
 
@@ -42,12 +43,10 @@ void initSDL() {
     }
 }
 
-
 void quitSDL() {
     IMG_Quit();
     SDL_Quit();
 }
-
 
 
 int main(int argc, char *argv[]) {

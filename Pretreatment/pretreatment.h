@@ -13,6 +13,6 @@ void brightness();
 Uint32 get_major_color();
 double variance();
 
-void ApplyPretreatment(char* filepath);
+void pretreatment(char* filepath);
 
 #endif

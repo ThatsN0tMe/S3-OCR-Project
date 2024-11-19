@@ -10,5 +10,6 @@ void select_file(GtkWidget *button, gpointer user_data);
 char* getDestPath(const char* sourcepath);
 int cloneFile(const char *src_path, const char *dest_path);
 void create_preprocess_window(char *filepath);
+void create_detection_window(char *filepath);
 
 #endif
