@@ -358,6 +358,7 @@ void pretreatment(char *filepath) {
     SDL_Surface* originalSurface = IMG_Load(filepath);
     if (!originalSurface) {
         printf("Image loading error: %s\n", IMG_GetError());
+        SDL_Quit();
         return;
     }
 

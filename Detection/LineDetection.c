@@ -6,11 +6,7 @@
 #include <gtk/gtk.h>
 #include "Detection.h"
 #include "../Rotate/rotate.h"
-#include "../afflelou.h"
 
-
-int lowestLineY = 0;
-double lowestLineAngle = 0;
 
 
 double** getBrightness(SDL_Surface* surface) {
@@ -19,18 +15,18 @@ double** getBrightness(SDL_Surface* surface) {
     Uint32* pixels = (Uint32*)surface->pixels;
 
     int height = surface->h, width = surface->w;
-    double** matrix = malloc(height * sizeof(double*));
+    double** res = malloc(height * sizeof(double*));
 
     for (int y = 0; y < height; y++) {
-        matrix[y] = malloc(width * sizeof(double));
+        res[y] = malloc(width * sizeof(double));
 
         for (int x = 0; x < width; x++) {
             SDL_GetRGB(pixels[y * width + x], surface->format, &r, &g, &b);
-            matrix[y][x] = 0.299*r + 0.587*g + 0.114*b;
+            res[y][x] = 0.299*r + 0.587*g + 0.114*b;
         }
     }
 
-    return matrix;
+    return res;
 }
 
 
@@ -60,7 +56,7 @@ int** detectEdges(SDL_Surface* surface) {
 }
 
 
-void detectLines() {
+void detectLines(char* filepath) {
 
     if (filepath == NULL) return;
 
@@ -74,7 +70,8 @@ void detectLines() {
     int** matrix = detectEdges(surface);
 
     if (matrix == NULL) {
-        puts("Aieaieaieaie on a un petit probleme");
+        puts("Problem with get edges detection");
+        SDL_Quit();
         return;
     }
 
@@ -109,119 +106,36 @@ void detectLines() {
         }
     }
 
-    threshold -= threshold / 4;
+    threshold /= 2;
+    int maxTheta = 0, angle = 0;
 
-    for (int rho = 0; rho < size * 2; rho++) {
-        for (int theta = 0; theta < 180; theta++) {
-            
+    for (int theta = 0; theta < 180; theta++) {
+        int currentTheta = 0;
+
+        for (int rho = 0; rho < size * 2; rho++) {
             if (accumulatorArray[rho][theta] > threshold) {
-                drawLine(surface, (double)(rho - size), (double)theta, height, width);
+                currentTheta++;
             }
         }
+
+        if (currentTheta > maxTheta) {
+            maxTheta = currentTheta;
+            angle = theta;
+        }
+    }
+
+    if ((int)angle % 90 != 0) {
+        if (angle > 90) {
+            rotate(filepath, 90 - angle);
+        }
+        else {
+            rotate(filepath, -angle);
+        }
+    }
+    
+
+    for (int rho = 0; rho < size * 2; rho++) {
         free(accumulatorArray[rho]);
     }
     free(accumulatorArray);
-
-
-    if (SDL_SaveBMP(surface, filepath) != 0) {
-        printf("Image saving error: %s\n", SDL_GetError());
-    }
-    else {
-        printf("Image processed successfully and saved as '%s'.\n", filepath);
-    }
-
-
-    if ((int)lowestLineAngle % 90 != 0) {
-        if (lowestLineAngle > 90) {
-            rotate(filepath, 90 - lowestLineAngle);
-        }
-        else {
-            rotate(filepath, lowestLineAngle);
-        }
-    }
-}
-
-
-void drawLine(SDL_Surface* surface, double rho, double theta, int h, int w) {
-
-    double x1, y1, x2, y2;
-
-    if (theta == 90) {
-        x1 = 0;
-        x2 = w;
-        y1 = y2 = rho;
-    }
-    else if (theta == 0) {
-        x1 = x2 = rho;
-        y1 = 0;
-        y2 = h;
-    }
-    else {
-
-        double rad_theta = theta * (double)M_PI / 180.0,
-               cos_theta = cos(rad_theta),
-               sin_theta = sin(rad_theta);
-
-        y1 = rho / sin_theta;
-        if (y1 < 0) {
-            y1 = 0;
-            x1 = rho / cos_theta;
-        }
-        else if (y1 > h) {
-            y1 = h;
-            x1 = (rho - h * sin_theta) / cos_theta;
-        }
-        else {
-            x1 = 0;
-        }
-
-        y2 = (rho - w * cos_theta) / sin_theta;
-        if (y2 < 0) {
-            y2 = 0;
-            x2 = rho / cos_theta;
-        }
-        else if (y2 > h) {
-            y2 = h;
-            x2 = (rho - h * sin_theta) / cos_theta;
-        }
-        else {
-            x2 = w;
-        }
-    }
-
-    if (y1 + y2 > lowestLineY) {
-        lowestLineY = y1 + y2;
-        lowestLineAngle = theta;
-    }
-
-    drawLineOnSurface(surface, x1, y1, x2, y2);
-}
-
-void drawLineOnSurface(SDL_Surface *surface, int x1, int y1, int x2, int y2) {
-    int dx = abs(x2 - x1);
-    int dy = abs(y2 - y1);
-    int sx = (x1 < x2) ? 1 : -1;
-    int sy = (y1 < y2) ? 1 : -1;
-    int err = dx - dy;
-
-    while (x1 != x2 || y1 != y2) {
-        put_pixel(surface, x1, y1);
-        
-        int e2 = err * 2;
-        if (e2 > -dy) {
-            err -= dy;
-            x1 += sx;
-        }
-        if (e2 < dx) {
-            err += dx;
-            y1 += sy;
-        }
-    }
-}
-
-void put_pixel(SDL_Surface *surface, int x, int y) {
-    if (x >= 0 && x < surface->w && y >= 0 && y < surface->h) {
-        Uint32* pixels = (Uint32*)surface->pixels;
-        pixels[y * surface->w + x] = SDL_MapRGB(surface->format, 255, 0, 0);
-    }
 }

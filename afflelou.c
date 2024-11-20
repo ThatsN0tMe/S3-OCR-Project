@@ -26,7 +26,6 @@ void doRotation() {
 
 void detectElements() {
     detection(filepath);
-    create_detection_window(filepath);
 }
 
 
