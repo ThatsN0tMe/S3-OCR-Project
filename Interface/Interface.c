@@ -89,6 +89,10 @@ void create_preprocess_window(char *filepath) {
     GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
     gtk_container_add(GTK_CONTAINER(window), vbox);
 
+    GtkWidget *last_operation = gtk_button_new_with_label("Return to previous operation");
+    g_signal_connect(last_operation, "clicked", G_CALLBACK(undo), NULL);
+    gtk_box_pack_start(GTK_BOX(vbox), last_operation, FALSE, FALSE, 1);
+
     GtkWidget *original_image = gtk_image_new_from_pixbuf(original_pixbuf);
     gtk_box_pack_start(GTK_BOX(vbox), original_image, TRUE, TRUE, 0);
 
@@ -162,6 +166,8 @@ void select_file(GtkWidget *button, gpointer user_data) {
 
         display_image_options();
         gtk_button_set_label(GTK_BUTTON(button), "File open !");
+
+        image_change();
     }
 
     gtk_widget_destroy(dialog);
