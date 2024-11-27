@@ -6,5 +6,6 @@
 #include "Detection.h"
 
 void detection(char* filepath) {
-    detectLines(filepath);
+    detectLines(filepath); //rota auto
+    detectGrids(filepath);
 }

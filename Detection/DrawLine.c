@@ -4,7 +4,7 @@
 #include "Detection.h"
 
 
-void drawLine(SDL_Surface* surface, double rho, double theta, int h, int w) {
+void drawPolarLine(SDL_Surface* surface, double rho, double theta, int h, int w) {
 
     double x1, y1, x2, y2;
 
@@ -62,7 +62,7 @@ void drawLineOnSurface(SDL_Surface *surface, int x1, int y1, int x2, int y2) {
     int err = dx - dy;
 
     while (x1 != x2 || y1 != y2) {
-        put_pixel(surface, x1, y1);
+        putPixel(surface, x1, y1);
         
         int e2 = err * 2;
         if (e2 > -dy) {
@@ -76,7 +76,7 @@ void drawLineOnSurface(SDL_Surface *surface, int x1, int y1, int x2, int y2) {
     }
 }
 
-void put_pixel(SDL_Surface *surface, int x, int y) {
+void putPixel(SDL_Surface *surface, int x, int y) {
     if (x >= 0 && x < surface->w && y >= 0 && y < surface->h) {
         Uint32* pixels = (Uint32*)surface->pixels;
         pixels[y * surface->w + x] = SDL_MapRGB(surface->format, 255, 0, 0);

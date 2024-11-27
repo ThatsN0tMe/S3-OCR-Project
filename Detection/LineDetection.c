@@ -8,7 +8,6 @@
 #include "../Rotate/rotate.h"
 
 
-
 double** getBrightness(SDL_Surface* surface) {
 
     Uint8 r, g, b;
@@ -58,7 +57,10 @@ int** detectEdges(SDL_Surface* surface) {
 
 void detectLines(char* filepath) {
 
-    if (filepath == NULL) return;
+    if (filepath == NULL) {
+        puts("Filepath is undefined");
+        return;
+    }
 
     SDL_Surface *surface = IMG_Load(filepath);
     if (!surface) {
@@ -68,9 +70,8 @@ void detectLines(char* filepath) {
     }
 
     int** matrix = detectEdges(surface);
-
     if (matrix == NULL) {
-        puts("Problem with get edges detection");
+        puts("Error with get edges detection");
         SDL_Quit();
         return;
     }
@@ -124,6 +125,7 @@ void detectLines(char* filepath) {
         }
     }
 
+
     if ((int)angle % 90 != 0) {
         if (angle > 90) {
             rotate(filepath, 90 - angle);
@@ -132,7 +134,6 @@ void detectLines(char* filepath) {
             rotate(filepath, -angle);
         }
     }
-    
 
     for (int rho = 0; rho < size * 2; rho++) {
         free(accumulatorArray[rho]);
