@@ -30,7 +30,7 @@ void undo(gpointer data) {
 
 void save() {    
     if (path == NULL) {
-        printf("Filepath is undefined");
+        printf("Filepath is undefined.\n");
         return;
     }
 
