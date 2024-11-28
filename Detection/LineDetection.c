@@ -3,7 +3,6 @@
 #include <math.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-#include <gtk/gtk.h>
 #include "Detection.h"
 #include "../Rotate/rotate.h"
 

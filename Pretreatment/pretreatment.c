@@ -7,9 +7,9 @@
 #include "../Interface/Interface.h"
 #include "image_history.h"
 
-char* path = NULL;
-SDL_Surface* surface = NULL;
-int autoProcessApply = 0;
+static char* path = NULL;
+static SDL_Surface* surface = NULL;
+static int autoProcessApply = 0;
 
 void image_change() {
     autoProcessApply = 0;

@@ -4,6 +4,14 @@
 #include "Detection.h"
 
 
+void drawSquare(SDL_Surface* surface, int posX, int posY, int sqW, int sqH) {
+    
+    SDL_Rect rect = {posX, posY, sqW, sqH};
+    Uint32 color = SDL_MapRGB(surface->format, 50, 50, 50);
+    SDL_FillRect(surface, &rect, color);
+}
+
+
 void drawPolarLine(SDL_Surface* surface, double rho, double theta, int h, int w) {
 
     double x1, y1, x2, y2;

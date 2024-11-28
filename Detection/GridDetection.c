@@ -4,33 +4,24 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "Detection.h"
+#include "../Functions.h"
 
 
 int sqW = 0,
     sqH = 0,
     sqNum = 20,
     thresholdCoef = 4;
+static SDL_Surface* surface = NULL;
 
 
-
-int Min(int a, int b) {
-    if (a > b) return b;
-    return a;
-}
-int Max(int a, int b) {
-    if (a > b) return a;
-    return b;
+void pixelLimits(int* x, int* y) {
+    if (*x < 0) *x = 0;
+    else if (*x >= surface->w) *x = surface->w - 1;
+    if (*y < 0) *y = 0;
+    else if (*y >= surface->h) *y = surface->h - 1;
 }
 
-
-void drawSquare(SDL_Surface* surface, int posX, int posY) {
-    
-    SDL_Rect rect = {posX, posY, sqW, sqH};
-    Uint32 color = SDL_MapRGB(surface->format, 50, 50, 50);
-    SDL_FillRect(surface, &rect, color);
-}
-
-int getPixelNum(SDL_Surface* surface, int posX, int posY) {
+int getPixelNum(int posX, int posY) {
 
     Uint8 r, g, b;
     Uint32* pixels = (Uint32*)surface->pixels;
@@ -55,18 +46,35 @@ int getPixelNum(SDL_Surface* surface, int posX, int posY) {
 }
 
 
+void expandSides(int* x1, int* x2, int* y1, int* y2) {
+    while (*x1 > 0) {
+        if (isWhiteLine(surface, *x1, *y1, *x1, *y2)) break;
+        (*x1)--;
+    }
+    while (*x2 < surface->w - 1) {
+        if (isWhiteLine(surface, *x2, *y1, *x2, *y2)) break;
+        (*x2)++;
+    }
+    while (*y1 > 0) {
+        if (isWhiteLine(surface, *x1, *y1, *x2, *y1)) break;
+        (*y1)--;
+    }
+    while (*y2 < surface->h - 1) {
+        if (isWhiteLine(surface, *x1, *y2, *x2, *y2)) break;
+        (*y2)++;
+    }
+}
 
-void searchCorners(SDL_Surface* surface) {
+
+void searchCorners() {
     int x = sqNum / 2 * sqW,
         y = sqNum / 2 * sqH,
-        pixelNum = getPixelNum(surface, x, y);
+        pixelNum = getPixelNum(x, y);
     
-    int *topRight = searchTopRight(surface, x, y, pixelNum),
-        *topLeft = searchTopLeft(surface, x, y, pixelNum),
-        *bottomRight = searchBottomRight(surface, x, y, pixelNum),
-        *bottomLeft = searchBottomLeft(surface, x, y, pixelNum);
-
-    //prendre minimun de chaque corner
+    int *topRight = searchTopRight(x, y, pixelNum),
+        *topLeft = searchTopLeft(x, y, pixelNum),
+        *bottomRight = searchBottomRight(x, y, pixelNum),
+        *bottomLeft = searchBottomLeft(x, y, pixelNum);
 
     int x1 = Max(topLeft[0], bottomLeft[0]),
         x2 = Min(topRight[0], bottomRight[0]),
@@ -78,31 +86,40 @@ void searchCorners(SDL_Surface* surface) {
     free(bottomRight);
     free(bottomLeft);
 
-    drawLineOnSurface(surface, x1, y1, x2, y1);
+    pixelLimits(&x1, &y1);
+    pixelLimits(&x2, &y2);
+
+    x1 += 5;
+    y1 += 5;
+    x2 -= 5;
+    y2 -= 5;
+    expandSides(&x1, &x2, &y1, &y2);
+
+    detectLetters(surface, x1, x2, y1, y2);
+
+    /*drawLineOnSurface(surface, x1, y1, x2, y1);
     drawLineOnSurface(surface, x2, y1, x2, y2);
     drawLineOnSurface(surface, x2, y2, x1, y2);
-    drawLineOnSurface(surface, x1, y2, x1, y1);
+    drawLineOnSurface(surface, x1, y2, x1, y1);*/
 }
 
 
-int* searchTopRight(SDL_Surface* surface, int x, int y, int pixels) {
-    
-    drawSquare(surface, x, y);
+int* searchTopRight(int x, int y, int pixels) {
 
     if (pixels > 0) {
 
         int pixelNum;
-        if ((pixelNum = getPixelNum(surface, x + sqW, y - sqH)) > pixels/thresholdCoef) {
-            return searchTopRight(surface, x + sqW, y - sqH, pixelNum);
+        if ((pixelNum = getPixelNum(x + sqW, y - sqH)) > pixels/thresholdCoef) {
+            return searchTopRight(x + sqW, y - sqH, pixelNum);
         }
-        pixels = getPixelNum(surface, x + sqW, y) > getPixelNum(surface, x, y - sqH) ? -1 : -2;
+        pixels = getPixelNum(x + sqW, y) > getPixelNum(x, y - sqH) ? -1 : -2;
     }
 
-    if (pixels == -1 && getPixelNum(surface, x + sqW, y) > 0) {
-        return searchTopRight(surface, x + sqW, y, -1);
+    if (pixels == -1 && getPixelNum(x + sqW, y) > 0) {
+        return searchTopRight(x + sqW, y, -1);
     }
-    if (pixels == -2 && getPixelNum(surface, x, y - sqH) > 0) {
-        return searchTopRight(surface, x, y - sqH, -2);
+    if (pixels == -2 && getPixelNum(x, y - sqH) > 0) {
+        return searchTopRight(x, y - sqH, -2);
     }
 
     int* coords = malloc(2 * sizeof(int));
@@ -113,24 +130,22 @@ int* searchTopRight(SDL_Surface* surface, int x, int y, int pixels) {
 }
 
 
-int* searchTopLeft(SDL_Surface* surface, int x, int y, int pixels) {
+int* searchTopLeft(int x, int y, int pixels) {
     
-    drawSquare(surface, x, y);
-
     if (pixels > 0) {
 
         int pixelNum;
-        if ((pixelNum = getPixelNum(surface, x - sqW, y - sqH)) > pixels/thresholdCoef) {
-            return searchTopLeft(surface, x - sqW, y - sqH, pixelNum);
+        if ((pixelNum = getPixelNum(x - sqW, y - sqH)) > pixels/thresholdCoef) {
+            return searchTopLeft(x - sqW, y - sqH, pixelNum);
         }
-        pixels = getPixelNum(surface, x - sqW, y) > getPixelNum(surface, x, y - sqH) ? -1 : -2;
+        pixels = getPixelNum(x - sqW, y) > getPixelNum(x, y - sqH) ? -1 : -2;
     }
 
-    if (pixels == -1 && getPixelNum(surface, x - sqW, y) > 0) {
-        return searchTopLeft(surface, x - sqW, y, -1);
+    if (pixels == -1 && getPixelNum(x - sqW, y) > 0) {
+        return searchTopLeft(x - sqW, y, -1);
     }
-    if (pixels == -2 && getPixelNum(surface, x, y - sqH) > 0) {
-        return searchTopLeft(surface, x, y - sqH, -2);
+    if (pixels == -2 && getPixelNum(x, y - sqH) > 0) {
+        return searchTopLeft(x, y - sqH, -2);
     }
 
     int* coords = malloc(2 * sizeof(int));
@@ -141,24 +156,22 @@ int* searchTopLeft(SDL_Surface* surface, int x, int y, int pixels) {
 }
 
 
-int* searchBottomRight(SDL_Surface* surface, int x, int y, int pixels) {
+int* searchBottomRight(int x, int y, int pixels) {
     
-    drawSquare(surface, x, y);
-
     if (pixels > 0) {
 
         int pixelNum;
-        if ((pixelNum = getPixelNum(surface, x + sqW, y + sqH)) > pixels/thresholdCoef) {
-            return searchBottomRight(surface, x + sqW, y + sqH, pixelNum);
+        if ((pixelNum = getPixelNum(x + sqW, y + sqH)) > pixels/thresholdCoef) {
+            return searchBottomRight(x + sqW, y + sqH, pixelNum);
         }
-        pixels = getPixelNum(surface, x + sqW, y) > getPixelNum(surface, x, y + sqH) ? -1 : -2;
+        pixels = getPixelNum(x + sqW, y) > getPixelNum(x, y + sqH) ? -1 : -2;
     }
 
-    if (pixels == -1 && getPixelNum(surface, x + sqW, y) > 0) {
-        return searchBottomRight(surface, x + sqW, y, -1);
+    if (pixels == -1 && getPixelNum(x + sqW, y) > 0) {
+        return searchBottomRight(x + sqW, y, -1);
     }
-    if (pixels == -2 && getPixelNum(surface, x, y + sqH) > 0) {
-        return searchBottomRight(surface, x, y + sqH, -2);
+    if (pixels == -2 && getPixelNum(x, y + sqH) > 0) {
+        return searchBottomRight(x, y + sqH, -2);
     }
 
     int* coords = malloc(2 * sizeof(int));
@@ -169,30 +182,28 @@ int* searchBottomRight(SDL_Surface* surface, int x, int y, int pixels) {
 }
 
 
-int* searchBottomLeft(SDL_Surface* surface, int x, int y, int pixels) {
+int* searchBottomLeft(int x, int y, int pixels) {
     
-    drawSquare(surface, x, y);
-
     if (pixels > 0) {
 
         int pixelNum;
-        if ((pixelNum = getPixelNum(surface, x - sqW, y + sqH)) > pixels/thresholdCoef) {
-            return searchBottomLeft(surface, x - sqW, y + sqH, pixelNum);
+        if ((pixelNum = getPixelNum(x - sqW, y + sqH)) > pixels/thresholdCoef) {
+            return searchBottomLeft(x - sqW, y + sqH, pixelNum);
         }
-        pixels = getPixelNum(surface, x - sqW, y) > getPixelNum(surface, x, y + sqH) ? -1 : -2;
+        pixels = getPixelNum(x - sqW, y) > getPixelNum(x, y + sqH) ? -1 : -2;
     }
 
-    if (pixels == -1 && getPixelNum(surface, x - sqW, y) > 0) {
-        return searchBottomLeft(surface, x - sqW, y, -1);
+    if (pixels == -1 && getPixelNum(x - sqW, y) > 0) {
+        return searchBottomLeft(x - sqW, y, -1);
     }
-    if (pixels == -2 && getPixelNum(surface, x, y + sqH) > 0) {
-        return searchBottomLeft(surface, x, y + sqH, -2);
+    if (pixels == -2 && getPixelNum(x, y + sqH) > 0) {
+        return searchBottomLeft(x, y + sqH, -2);
     }
 
     int* coords = malloc(2 * sizeof(int));
     coords[0] = x;
     coords[1] = y + sqH;
-    
+
     return coords;
 }
 
@@ -204,7 +215,7 @@ void detectGrids(char* filepath) {
         return;
     }
 
-    SDL_Surface *surface = IMG_Load(filepath);
+    surface = IMG_Load(filepath);
     if (!surface) {
         printf("Error loading image: %s\n", IMG_GetError());
         SDL_Quit();
@@ -222,9 +233,6 @@ void detectGrids(char* filepath) {
         height = surface->h;
     sqW = (width - 1) / sqNum;
     sqH = (height - 1) / sqNum;
-    
-    printf("sqW : %d  |  width : %d  |  newW : %d\n", sqW, width, sqW * sqNum);
-    printf("sqH : %d  |  heigth : %d  |  newH : %d\n", sqH, height, sqH * sqNum);
 
     searchCorners(surface);
 
