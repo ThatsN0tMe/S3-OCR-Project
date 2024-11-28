@@ -7,7 +7,8 @@ void detectGrids(char* filepath);
 void detectLines(char* filepath);
 double** getBrightness(SDL_Surface* surface);
 int** detectEdges(SDL_Surface* surface);
-int* searchTopRight(SDL_Surface* surface, int x, int y, int sqPixels);
+
+int* searchTopRight(SDL_Surface* surface, int x, int y, int pixels);
 int* searchTopLeft(SDL_Surface* surface, int x, int y, int pixels);
 int* searchBottomRight(SDL_Surface* surface, int x, int y, int pixels);
 int* searchBottomLeft(SDL_Surface* surface, int x, int y, int pixels);
