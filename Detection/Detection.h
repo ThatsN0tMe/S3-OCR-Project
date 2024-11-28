@@ -9,7 +9,7 @@ int** detectEdges(SDL_Surface* surface);
 void searchCorners();
 void pixelLimits(int* x, int* y);
 int getPixelNum(int posX, int posY);
-void expandSides(int* x1, int* x2, int* y1, int* y2);
+void resizeSides(int* x1, int* x2, int* y1, int* y2);
 int* searchTopRight(int x, int y, int pixels);
 int* searchTopLeft(int x, int y, int pixels);
 int* searchBottomRight(int x, int y, int pixels);

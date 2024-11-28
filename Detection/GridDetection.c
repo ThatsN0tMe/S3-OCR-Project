@@ -46,22 +46,58 @@ int getPixelNum(int posX, int posY) {
 }
 
 
-void expandSides(int* x1, int* x2, int* y1, int* y2) {
-    while (*x1 > 0) {
-        if (isWhiteLine(surface, *x1, *y1, *x1, *y2)) break;
-        (*x1)--;
+void resizeSides(int* x1, int* x2, int* y1, int* y2) {
+
+    if (!isWhiteLine(surface, *x1, *y1, *x1, *y2)) {
+        do {
+            if (isWhiteLine(surface, *x1, *y1, *x1, *y2)) break;
+            (*x1)--;
+        } while (*x1 > 0);
     }
-    while (*x2 < surface->w - 1) {
-        if (isWhiteLine(surface, *x2, *y1, *x2, *y2)) break;
-        (*x2)++;
+    else {
+        do {
+            if (!isWhiteLine(surface, *x1, *y1, *x1, *y2)) break;
+            (*x1)++;
+        } while (*x1 < surface->w - 1);
     }
-    while (*y1 > 0) {
-        if (isWhiteLine(surface, *x1, *y1, *x2, *y1)) break;
-        (*y1)--;
+
+    if (!isWhiteLine(surface, *x2, *y1, *x2, *y2)) {
+        do {
+            if (isWhiteLine(surface, *x2, *y1, *x2, *y2)) break;
+            (*x2)++;
+        } while (*x2 < surface->w - 1);
     }
-    while (*y2 < surface->h - 1) {
-        if (isWhiteLine(surface, *x1, *y2, *x2, *y2)) break;
-        (*y2)++;
+    else {
+        do {
+            if (!isWhiteLine(surface, *x2, *y1, *x2, *y2)) break;
+            (*x2)--;
+        } while (*x2 > 0);
+    }
+
+    if (!isWhiteLine(surface, *x1, *y1, *x2, *y1)) {
+        do {
+            if (isWhiteLine(surface, *x1, *y1, *x2, *y1)) break;
+            (*y1)--;
+        } while (*y1 > 0);
+    }
+    else {
+        do {
+            if (!isWhiteLine(surface, *x1, *y1, *x2, *y1)) break;
+            (*y1)++;
+        } while (*y1 < surface->w - 1);
+    }
+    
+    if (!isWhiteLine(surface, *x1, *y2, *x2, *y2)) {
+        do {
+            if (isWhiteLine(surface, *x1, *y2, *x2, *y2)) break;
+            (*y2)++;
+        } while (*y2 < surface->w - 1);
+    }
+    else {
+        do {
+            if (!isWhiteLine(surface, *x1, *y2, *x2, *y2)) break;
+            (*y2)--;
+        } while (*y2 > 0);
     }
 }
 
@@ -89,11 +125,11 @@ void searchCorners() {
     pixelLimits(&x1, &y1);
     pixelLimits(&x2, &y2);
 
-    x1 += 5;
-    y1 += 5;
-    x2 -= 5;
-    y2 -= 5;
-    expandSides(&x1, &x2, &y1, &y2);
+    resizeSides(&x1, &x2, &y1, &y2);
+    x1 -= 2;
+    x2 += 2;
+    y1 -= 2;
+    y2 += 2;
 
     detectLetters(surface, x1, x2, y1, y2);
 
