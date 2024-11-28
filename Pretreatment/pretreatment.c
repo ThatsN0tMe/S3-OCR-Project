@@ -1,16 +1,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <gtk/gtk.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "pretreatment.h"
 #include "../Interface/Interface.h"
-
+#include "image_history.h"
 
 char* path = NULL;
 SDL_Surface* surface = NULL;
+int autoProcessApply = 0;
 
+void image_change() {
+    autoProcessApply = 0;
+    free_stack();
+}
+
+void undo(gpointer data) {
+    SDL_Surface* previous_surface = pop(data);
+    if (previous_surface) {
+        SDL_FreeSurface(surface);
+        surface = previous_surface;
+        printf("Last operation cancelled.\n");
+        save();
+    }
+    else
+        printf("No previous operation to undo.\n");
+}
 
 void save() {    
     if (path == NULL) {
@@ -29,6 +45,7 @@ void save() {
 
 
 void grayscale() {
+    push(surface);
 
     Uint32* pixels = (Uint32*)surface->pixels;
     int width = surface->w;
@@ -52,6 +69,8 @@ void grayscale() {
 }
 
 void contrast() {
+    push(surface);
+
     Uint8 r, g, b;
     Uint32 *pixels = (Uint32 *)surface->pixels;
     int width = surface->w;
@@ -78,6 +97,8 @@ void contrast() {
 }
 
 void brightness() {
+    push(surface);
+
     int width = surface->w;
     int height = surface->h;
     int brightness = -100;
@@ -102,6 +123,8 @@ void brightness() {
 }
 
 void binarize() {
+    push(surface);
+
     Uint32 major_color = get_major_color();
     Uint8 r, g, b;
     SDL_GetRGB(major_color, surface->format, &r, &g, &b);
@@ -132,6 +155,8 @@ void binarize() {
 }
 
 void gaussian() {
+    push(surface);
+
     int width = surface->w,
         height = surface->h,
         kernel_size = 3;
@@ -191,6 +216,8 @@ void gaussian() {
 }
 
 void median() {
+    push(surface);
+
     int width = surface->w,
         height = surface->h,
         kernel_size = 2;
@@ -311,46 +338,6 @@ Uint32 get_major_color() {
     return SDL_MapRGB(surface->format, dominant_r, dominant_g, dominant_b);
 }
 
-double variance(SDL_Surface *surface) {
-    int width = surface->w;
-    int height = surface->h;
-    Uint32 *pixels = (Uint32 *)surface->pixels;
-    int num_pixels = width * height;
-
-    double sum_luminance = 0.0;
-    double sum_squared_diff = 0.0;
-
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            Uint32 pixel = pixels[y * width + x];
-            Uint8 r, g, b;
-            SDL_GetRGB(pixel, surface->format, &r, &g, &b);
-
-            double luminance = 0.299 * r + 0.587 * g + 0.114 * b;
-            sum_luminance += luminance;
-        }
-    }
-
-    double mean_luminance = sum_luminance / num_pixels;
-
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            Uint32 pixel = pixels[y * width + x];
-            Uint8 r, g, b;
-            SDL_GetRGB(pixel, surface->format, &r, &g, &b);
-
-            double luminance = 0.299 * r + 0.587 * g + 0.114 * b;
-            double diff = luminance - mean_luminance;
-            sum_squared_diff += diff * diff;
-        }
-    }
-
-    save();
-    double variance = sum_squared_diff / num_pixels;
-    return variance;
-}
-
-
 void pretreatment(char *filepath) {
 
     path = filepath;
@@ -370,22 +357,30 @@ void pretreatment(char *filepath) {
         IMG_Quit();
         SDL_Quit();
     }
-    
+
+    if (!autoProcessApply) {
+        char* filename = strrchr(path, '/');
+        if (filename != NULL)
+            filename++;
+        else
+            filename = path;
+        
+        grayscale();
+        contrast();
+
+        if (!strcmp(filename, "level_2_image_1.png")) {
+            for (int i = 0; i < 4; i++)
+                contrast();
+            gaussian();
+        }
+        else if (!strcmp(filename, "level_2_image_2.png"))
+            median();
+        else if (!strcmp(filename, "level_4_image_1.png"))
+            for (int i = 0; i < 4; i++)
+                contrast();
+
+        binarize();
+        autoProcessApply = 1;
+    }
     create_preprocess_window(path);
-
-    /*grayscale(surface);
-    int need_filter = variance(surface) < 1600;
-    contrast(surface, 60);
-    brightness(surface, -100);
-    //gaussian(surface, 5);
-    if (need_filter)
-        median(surface, 2);
-
-
-    Uint32 major_color = get_major_color(surface);
-    Uint8 r, g, b;
-    SDL_GetRGB(major_color, newSurface->format, &r, &g, &b);
-    binarize(surface, 0.299 * r + 0.587 * g + 0.114 * b);
-    //gaussian(surface, 3);
-    //median(surface, 2);*/
 }

@@ -3,6 +3,8 @@
 
 #include <SDL2/SDL.h>
 
+void image_change();
+void undo();
 void save();
 void grayscale();
 void contrast();
