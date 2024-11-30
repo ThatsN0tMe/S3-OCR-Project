@@ -128,10 +128,14 @@ void searchCorners() {
     pixelLimits(&x2, &y2);
 
     resizeSides(&x1, &x2, &y1, &y2);
-    x1 -= 2;
-    x2 += 2;
-    y1 -= 2;
-    y2 += 2;
+    x1 -= 10;
+    x2 += 10;
+    y1 -= 10;
+    y2 += 10;
+
+    pixelLimits(&x1, &y1);
+    pixelLimits(&x2, &y2);
+
 
     detectLetters(surface, x1, x2, y1, y2);
 
@@ -143,8 +147,6 @@ void searchCorners() {
 
 
 int* searchTopRight(int x, int y, int pixels) {
-
-    //drawSquare(surface, x, y, sqW, sqH);
 
     if (pixels > 0) {
 
@@ -171,8 +173,6 @@ int* searchTopRight(int x, int y, int pixels) {
 
 
 int* searchTopLeft(int x, int y, int pixels) {
-    
-    //drawSquare(surface, x, y, sqW, sqH);
 
     if (pixels > 0) {
 
@@ -199,8 +199,6 @@ int* searchTopLeft(int x, int y, int pixels) {
 
 
 int* searchBottomRight(int x, int y, int pixels) {
-
-    //drawSquare(surface, x, y, sqW, sqH);
     
     if (pixels > 0) {
 
@@ -227,8 +225,6 @@ int* searchBottomRight(int x, int y, int pixels) {
 
 
 int* searchBottomLeft(int x, int y, int pixels) {
-    
-    //drawSquare(surface, x, y, sqW, sqH);
 
     if (pixels > 0) {
 

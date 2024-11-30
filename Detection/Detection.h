@@ -17,12 +17,13 @@ int* searchBottomRight(int x, int y, int pixels);
 int* searchBottomLeft(int x, int y, int pixels);
 
 int isWhiteLine(SDL_Surface* surface, int x1, int y1, int x2, int y2);
-int getNumLines(SDL_Surface* surface, int x1, int x2, int y1, int y2);
+int getNumLines(SDL_Surface* surface, int x1, int x2, int* y1, int* y2);
 int getNumColumns(SDL_Surface* surface, int x1, int x2, int y1, int y2);
 void detectLetters(SDL_Surface* surface, int x1, int x2, int y1, int y2);
 
-void drawSquare(SDL_Surface* surface, int posX, int posY, int sqW, int sqH);
-void drawPolarLine(SDL_Surface* surface, double rho, double theta, int h, int w);
+int* polarToCartesian(double rho, double theta, int w, int h);
+void drawWhiteRect(SDL_Surface* surface, int posX, int posY, int rectW, int rectH);
+void drawPolarLine(SDL_Surface* surface, double rho, double theta, int w, int h);
 void drawLineOnSurface(SDL_Surface *surface, int x1, int y1, int x2, int y2);
 void putPixel(SDL_Surface *surface, int x, int y);
 

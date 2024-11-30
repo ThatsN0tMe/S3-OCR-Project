@@ -4,17 +4,18 @@
 #include "Detection.h"
 
 
-void drawSquare(SDL_Surface* surface, int posX, int posY, int sqW, int sqH) {
+void drawWhiteRect(SDL_Surface* surface, int posX, int posY, int rectW, int rectH) {
     
-    SDL_Rect rect = {posX, posY, sqW, sqH};
-    Uint32 color = SDL_MapRGB(surface->format, 50, 50, 50);
+    SDL_Rect rect = {posX, posY, rectW, rectH};
+    Uint32 color = SDL_MapRGB(surface->format, 255, 255, 255);
     SDL_FillRect(surface, &rect, color);
 }
 
 
-void drawPolarLine(SDL_Surface* surface, double rho, double theta, int h, int w) {
+int* polarToCartesian(double rho, double theta, int w, int h) {
 
-    double x1, y1, x2, y2;
+    int x1, y1, x2, y2;
+    int* coords = malloc(4 * sizeof(int));
 
     if (theta == 90) {
         x1 = 0;
@@ -59,7 +60,20 @@ void drawPolarLine(SDL_Surface* surface, double rho, double theta, int h, int w)
         }
     }
 
-    drawLineOnSurface(surface, x1, y1, x2, y2);
+    coords[0] = x1;
+    coords[1] = y1;
+    coords[2] = x2;
+    coords[3] = y2;
+
+    return coords;
+}
+
+
+void drawPolarLine(SDL_Surface* surface, double rho, double theta, int w, int h) {
+
+    int* coords = polarToCartesian(rho, theta, w, h);
+
+    drawLineOnSurface(surface, coords[0], coords[1], coords[2], coords[3]);
 }
 
 void drawLineOnSurface(SDL_Surface *surface, int x1, int y1, int x2, int y2) {

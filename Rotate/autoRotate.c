@@ -27,7 +27,6 @@ void autoRotate(char* filepath) {
 
 
     threshold /= 2;
-
     int maxTheta = 0, angle = 0;
 
     for (int theta = 0; theta < 180; theta++) {
