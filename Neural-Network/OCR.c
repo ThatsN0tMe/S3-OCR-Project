@@ -258,6 +258,46 @@ void load_weights(const char *filename) {
   printf("Poids et biais chargés depuis %s\n", filename);
 }
 
+void train_network(int input_data[4][2], int output_data[4][1]) {
+  for (int epoch = 0; epoch < EPOCHS; epoch++) {
+    double total_error = 0;
+
+    for (int p = 0; p < 4; p++) {
+      LAYERS[0].neurons[0].actv = input_data[p][0];
+      LAYERS[0].neurons[1].actv = input_data[p][1];
+
+      forward_prop();
+
+      double output = LAYERS[LAYER_NUMBER - 1].neurons[0].actv;
+      double error = output - DESIRED_OUTPUTS[p][0];
+      total_error += error * error;
+
+      if (epoch % 50000 == 0 && total_error > 0.5) {
+        create_network();
+        epoch = 0;
+      }
+
+      printf("Error probability : %f \n\n", total_error);
+
+      back_prop(p);
+
+      for (int i = 1; i < LAYER_NUMBER; i++) {
+        for (int j = 0; j < NEURONS_NUMBER[i]; j++) {
+          LAYERS[i].neurons[j].bias -= LEARNING_RATE * LAYERS[i].neurons[j].d_bias;
+          for (int k = 0; k < NEURONS_NUMBER[i - 1]; k++) {
+            LAYERS[i - 1].neurons[k].out_weights[j] -= 
+              LEARNING_RATE * LAYERS[i - 1].neurons[k].d_weights[j];
+          }
+        }
+      }
+    }
+
+    save_weights("weights.txt");
+    if (epoch % (EPOCHS / 10) == 0) {
+      printf("Epoch %d: Error = %f\n", epoch, total_error);
+    }
+  }
+}
 
 int main(int argc, char** argv) {
   int train = 0;
@@ -309,43 +349,7 @@ int main(int argc, char** argv) {
   }
 
   if (train) {
-    for (int epoch = 0; epoch < EPOCHS; epoch++) {
-      double total_error = 0;
-
-      for (int p = 0; p < 4; p++) {
-        LAYERS[0].neurons[0].actv = input_data[p][0];
-        LAYERS[0].neurons[1].actv = input_data[p][1];
-
-        forward_prop();
-
-        double output = LAYERS[LAYER_NUMBER - 1].neurons[0].actv;
-        double error = output - DESIRED_OUTPUTS[p][0];
-        total_error += error * error;
-
-        if (epoch % 50000 == 0 && total_error > 0.5) {
-          create_network();
-          epoch = 0;
-        }
-
-        printf("Error probability : %f \n\n", total_error);
-
-        back_prop(p);
-
-        for (int i = 1; i < LAYER_NUMBER; i++) {
-          for (int j = 0; j < NEURONS_NUMBER[i]; j++) {
-            LAYERS[i].neurons[j].bias -= LEARNING_RATE 
-              * LAYERS[i].neurons[j].d_bias;
-            for (int k = 0; k < NEURONS_NUMBER[i - 1]; k++) {
-              LAYERS[i - 1].neurons[k].out_weights[j] -= 
-                LEARNING_RATE * LAYERS[i - 1].neurons[k].d_weights[j];
-            }
-          }
-        }
-      }
-      save_weights("weights.txt");
-      if (epoch % (EPOCHS / 10) == 0) {
-      }
-    }
+    train_network(input_data, output_data);
   }
   else {
     load_weights("weights.txt");
@@ -379,5 +383,3 @@ int main(int argc, char** argv) {
 
   return 0;
 }
-
-
