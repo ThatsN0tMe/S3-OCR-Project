@@ -46,10 +46,14 @@ layer create_layer(int neuron_number) {
   return lay;
 }
 
+double random_uniform(double min, double max) {
+    return min + (max - min) * ((double)rand() / RAND_MAX);
+}
+
 neuron create_neuron(int out_connections, int in_connections) {
   neuron neu;
   neu.actv = 0.0f;
-  neu.bias = ((double)rand() / RAND_MAX) * 2 - 1;
+  neu.bias = random_uniform(-1.0, 1.0);
   neu.z = 0.0f;
   neu.d_actv = 0.0f;
   neu.d_bias = 0.0f;
@@ -59,11 +63,21 @@ neuron create_neuron(int out_connections, int in_connections) {
     neu.out_weights = calloc(out_connections, sizeof(double));
     neu.d_weights = calloc(out_connections, sizeof(double));
 
-    for (int i = 0; i < out_connections; i++) {
-      neu.out_weights[i] = sqrt(6 / (out_connections + in_connections));
-      neu.d_weights[i] = 0.0f;
+    if (neu.out_weights == NULL || neu.d_weights == NULL) {
+      free(neu.out_weights);
+      free(neu.d_weights);
+      neu.out_weights = NULL;
+      neu.d_weights = NULL;
+      return neu;
     }
-  } else {
+
+    double limit = sqrt(6.0 / (in_connections + out_connections + 1.0));
+    for (int i = 0; i < out_connections; i++) {
+      neu.out_weights[i] = random_uniform(-limit, limit);
+      neu.d_weights[i] = 0.0;
+    }
+  }
+  else {
     neu.out_weights = NULL;
     neu.d_weights = NULL;
   }
@@ -82,15 +96,18 @@ int create_network() {
 
     for (int j = 0; j < NEURONS_NUMBER[i]; j++) {
       if (i < LAYER_NUMBER - 1) {
-        if (i >= 1)
-          neuron neuron = create_neuron(NEURONS_NUMBER[i+1], NEURONS_NUMBER[i-1]);
-        else
-          neuron neuron = create_neuron(NEURONS_NUMBER[i+1], 0);
-        LAYERS[i].neurons[j] = neuron;
+        neuron neu;
+        if (i >= 1) {
+          neu = create_neuron(NEURONS_NUMBER[i+1], NEURONS_NUMBER[i-1]);
+        }
+        else {
+          neu = create_neuron(NEURONS_NUMBER[i+1], 0);
+        }
+        LAYERS[i].neurons[j] = neu;
       }
       else {
-        neuron neuron = create_neuron(0, 0);
-        LAYERS[i].neurons[j] = neuron;
+        neuron neu = create_neuron(0, 0);
+        LAYERS[i].neurons[j] = neu;
       }
     }
   }
@@ -101,36 +118,26 @@ int create_network() {
 void forward_prop()
 {
 
-  for(int i = 1; i < LAYER_NUMBER; i++)
-  {
-    for(int j = 0; j < NEURONS_NUMBER[i]; j++)
-    {
+  for(int i = 1; i < LAYER_NUMBER; i++) {
+    for(int j = 0; j < NEURONS_NUMBER[i]; j++) {
       LAYERS[i].neurons[j].z = LAYERS[i].neurons[j].bias;
 
-      for(int k = 0; k < NEURONS_NUMBER[i-1]; k++)
-      {
+      for(int k = 0; k < NEURONS_NUMBER[i-1]; k++) {
         LAYERS[i].neurons[j].z  = LAYERS[i].neurons[j].z 
           + ((LAYERS[i-1].neurons[k].out_weights[j])
           * (LAYERS[i-1].neurons[k].actv));
       }
 
-      // Relu Activation Function for Hidden LAYERSers
-      if (i < LAYER_NUMBER-1)
-      {
-        if ((LAYERS[i].neurons[j].z) < 0)
-        {
+      if (i < LAYER_NUMBER-1) {
+        if ((LAYERS[i].neurons[j].z) < 0) {
           LAYERS[i].neurons[j].actv = 0;
         }
-
-        else
-      {
+        else {
           LAYERS[i].neurons[j].actv = LAYERS[i].neurons[j].z;
         }
       }
 
-      // Sigmoid Activation function for Output LAYERSer
-      else
-    {
+      else {
         LAYERS[i].neurons[j].actv = 1/(1+exp(-LAYERS[i].neurons[j].z));
       }
     }
@@ -372,4 +379,5 @@ int main(int argc, char** argv) {
 
   return 0;
 }
+
 
