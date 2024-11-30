@@ -1,7 +1,7 @@
 CC := gcc
 CFLAGS := -Wall -Wextra
 TARGET := Afflelou
-OBJS := afflelou.o Functions.o Pretreatment/pretreatment.o Pretreatment/image_history.o Rotate/rotate.o Rotate/autoRotate.o Interface/Interface.o Detection/LetterDetection.o Detection/LineDetection.o Detection/GridDetection.o Detection/DrawShapes.o Detection/Detection.o
+OBJS := afflelou.o Functions.o Pretreatment/pretreatment.o Pretreatment/image_history.o Rotate/rotate.o Rotate/autoRotate.o Interface/Interface.o Detection/Cutting.o Detection/LetterDetection.o Detection/LineDetection.o Detection/GridDetection.o Detection/DrawShapes.o Detection/Detection.o
 
 SDL_LIBS := -lSDL2 -lSDL2_image -lm
 
