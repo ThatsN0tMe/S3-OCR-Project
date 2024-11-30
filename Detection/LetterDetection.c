@@ -8,7 +8,8 @@
 
 
 
-int pixelTolerance = 10;
+static int pixelToleranceX,
+           pixelToleranceY;
 
 
 int isWhiteLine(SDL_Surface* surface, int x1, int y1, int x2, int y2) {
@@ -60,7 +61,7 @@ int getNumLines(SDL_Surface* surface, int x1, int x2, int y1, int y2) {
         nextLine = 1;
 
     for (int y = y1; y < y2; y++) {
-        if (isWhiteLine(surface, x1 + pixelTolerance, y, x2 - pixelTolerance, y)) {
+        if (isWhiteLine(surface, x1 + pixelToleranceX, y, x2 - pixelToleranceX, y)) {
             if (nextLine) {
                 nextLine = 0;
                 numLines++;
@@ -74,14 +75,13 @@ int getNumLines(SDL_Surface* surface, int x1, int x2, int y1, int y2) {
     return numLines;
 }
 
-
 int getNumColumns(SDL_Surface* surface, int x1, int x2, int y1, int y2) {
 
     int numColumns = 0,
         nextColumn = 1;
 
     for (int x = x1; x < x2; x++) {
-        if (isWhiteLine(surface, x, y1 + pixelTolerance, x, y2 - pixelTolerance)) {
+        if (isWhiteLine(surface, x, y1 + pixelToleranceY, x, y2 - pixelToleranceY)) {
             if (nextColumn) {
                 nextColumn = 0;
                 numColumns++;
@@ -96,12 +96,27 @@ int getNumColumns(SDL_Surface* surface, int x1, int x2, int y1, int y2) {
 }
 
 
+void removeLines(SDL_Surface* surface) {
+    int size = 0,
+        threshold = 0;
+}
+
+
+
 
 void detectLetters(SDL_Surface* surface, int x1, int x2, int y1, int y2) {
+
+    pixelToleranceX = (x2 - x1) / 5;
+    pixelToleranceY = (y2 - y1) / 5;
 
     //Nombre de lignes et de colonnes de lettres
     int lines = getNumLines(surface, x1, x2, y1, y2) - 1,
         columns = getNumColumns(surface, x1, x2, y1, y2) - 1;
+
+    //retirer le cadrillage
+    if (lines + columns < 10) {
+        
+    }
 
     //Liste 3 dimensionnelle dont la 3eme represente les corners topleft et bottomright de la lettre : x1, y1 | x2, y2
     int*** letterCoords = calloc(sizeof(int*), lines);
@@ -120,7 +135,7 @@ void detectLetters(SDL_Surface* surface, int x1, int x2, int y1, int y2) {
 
     for (int y = y1; y < y2; y++) {
 
-        if (!isWhiteLine(surface, x1 + pixelTolerance, y, x2 - pixelTolerance, y)) {
+        if (!isWhiteLine(surface, x1 + pixelToleranceX, y, x2 - pixelToleranceY, y)) {
             if (!nextLine) {
                 nextLine = 1;
             }
@@ -151,7 +166,7 @@ void detectLetters(SDL_Surface* surface, int x1, int x2, int y1, int y2) {
 
     for (int x = x1; x < x2; x++) {
 
-        if (!isWhiteLine(surface, x, y1 + pixelTolerance, x, y2 - pixelTolerance)) {
+        if (!isWhiteLine(surface, x, y1 + pixelToleranceX, x, y2 - pixelToleranceY)) {
             if (!nextColumn) {
                 nextColumn = 1;
             }

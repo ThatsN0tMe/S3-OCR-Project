@@ -9,15 +9,11 @@
 static GdkPixbuf *original_pixbuf;
 static GtkWidget *original_image;
 static gdouble current_angle = 0;
-char *filename = NULL;
+static char* path = NULL;
+static SDL_Surface* surface = NULL;
 
-void rotate(const char *filepath, double angle) {
-    SDL_Surface *originalSurface = IMG_Load(filepath);
-    if (!originalSurface) {
-        printf("Error loading image: %s\n", IMG_GetError());
-        SDL_Quit();
-        return;
-    }
+
+void rotate(SDL_Surface* originalSurface, char *filepath, double angle) {
 
     SDL_Window *window = SDL_CreateWindow("Rotation", 10000, SDL_WINDOWPOS_CENTERED, originalSurface->w, originalSurface->h, 0);
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_TARGETTEXTURE);
@@ -34,18 +30,18 @@ void rotate(const char *filepath, double angle) {
 
     SDL_RenderCopyEx(renderer, texture, NULL, NULL, angle, NULL, SDL_FLIP_NONE);
 
-    SDL_Surface *rotatedSurface = SDL_CreateRGBSurfaceWithFormat(0, destRect.w, destRect.h, 32, SDL_PIXELFORMAT_ARGB8888);
+    surface = SDL_CreateRGBSurfaceWithFormat(0, destRect.w, destRect.h, 32, SDL_PIXELFORMAT_ARGB8888);
 
-    SDL_RenderReadPixels(renderer, NULL, rotatedSurface->format->format, rotatedSurface->pixels, rotatedSurface->pitch);
+    SDL_RenderReadPixels(renderer, NULL, surface->format->format, surface->pixels, surface->pitch);
 
-    if (IMG_SavePNG(rotatedSurface, filepath) != 0) {
+    if (IMG_SavePNG(surface, filepath) != 0) {
         printf("Error saving image: %s\n", IMG_GetError());
     }
     else {
         printf("The image was successfully rotated with an angle of %d° and saved as '%s'.\n", (int)angle, filepath);
     }
 
-    SDL_FreeSurface(rotatedSurface);
+    SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -54,7 +50,7 @@ void rotate(const char *filepath, double angle) {
 
 
 void apply_rotate() {
-    rotate(filename, current_angle);
+    rotate(surface, path, current_angle);
 }
 
 void rotate_and_update_image(GtkRange *range) {
@@ -85,7 +81,20 @@ void rotate_and_update_image(GtkRange *range) {
 }
 
 void create_rotate_window(char *filepath) {
-    filename = filepath;
+
+    if (filepath == NULL) {
+        puts("Filepath is undefined");
+        return;
+    }
+    path = filepath;
+
+    surface = IMG_Load(filepath);
+    if (surface == NULL) {
+        printf("Error loading image: %s\n", IMG_GetError());
+        SDL_Quit();
+        return;
+    }
+
     original_pixbuf = gdk_pixbuf_new_from_file(filepath, NULL);
     if (original_pixbuf == NULL) {
         g_print("Error: Could not load image from file %s\n", filepath);

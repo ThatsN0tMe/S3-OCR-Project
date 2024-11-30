@@ -7,19 +7,12 @@
 #include "../Functions.h"
 
 
-int sqW = 0,
-    sqH = 0,
-    sqNum = 20,
-    thresholdCoef = 4;
+static int sqW = 0,
+           sqH = 0,
+           sqNum = 20,
+           thresholdCoef = 4;
 static SDL_Surface* surface = NULL;
 
-
-void pixelLimits(int* x, int* y) {
-    if (*x < 0) *x = 0;
-    else if (*x >= surface->w) *x = surface->w - 1;
-    if (*y < 0) *y = 0;
-    else if (*y >= surface->h) *y = surface->h - 1;
-}
 
 int getPixelNum(int posX, int posY) {
 
@@ -45,6 +38,14 @@ int getPixelNum(int posX, int posY) {
     return pixelsSum;
 }
 
+
+
+void pixelLimits(int* x, int* y) {
+    if (*x < 0) *x = 0;
+    else if (*x >= surface->w) *x = surface->w - 1;
+    if (*y < 0) *y = 0;
+    else if (*y >= surface->h) *y = surface->h - 1;
+}
 
 void resizeSides(int* x1, int* x2, int* y1, int* y2) {
 
@@ -102,6 +103,7 @@ void resizeSides(int* x1, int* x2, int* y1, int* y2) {
 }
 
 
+
 void searchCorners() {
     int x = sqNum / 2 * sqW,
         y = sqNum / 2 * sqH,
@@ -142,6 +144,8 @@ void searchCorners() {
 
 int* searchTopRight(int x, int y, int pixels) {
 
+    //drawSquare(surface, x, y, sqW, sqH);
+
     if (pixels > 0) {
 
         int pixelNum;
@@ -168,6 +172,8 @@ int* searchTopRight(int x, int y, int pixels) {
 
 int* searchTopLeft(int x, int y, int pixels) {
     
+    //drawSquare(surface, x, y, sqW, sqH);
+
     if (pixels > 0) {
 
         int pixelNum;
@@ -193,6 +199,8 @@ int* searchTopLeft(int x, int y, int pixels) {
 
 
 int* searchBottomRight(int x, int y, int pixels) {
+
+    //drawSquare(surface, x, y, sqW, sqH);
     
     if (pixels > 0) {
 
@@ -220,6 +228,8 @@ int* searchBottomRight(int x, int y, int pixels) {
 
 int* searchBottomLeft(int x, int y, int pixels) {
     
+    //drawSquare(surface, x, y, sqW, sqH);
+
     if (pixels > 0) {
 
         int pixelNum;
@@ -252,15 +262,8 @@ void detectGrids(char* filepath) {
     }
 
     surface = IMG_Load(filepath);
-    if (!surface) {
+    if (surface == NULL) {
         printf("Error loading image: %s\n", IMG_GetError());
-        SDL_Quit();
-        return;
-    }
-
-    int** matrix = detectEdges(surface);
-    if (matrix == NULL) {
-        puts("Error with get edges detection");
         SDL_Quit();
         return;
     }

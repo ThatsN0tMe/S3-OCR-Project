@@ -5,6 +5,7 @@
 
 double** getBrightness(SDL_Surface* surface);
 int** detectEdges(SDL_Surface* surface);
+int** detectLines(SDL_Surface* surface, int* size, int* threshold);
 
 void searchCorners();
 void pixelLimits(int* x, int* y);
@@ -26,7 +27,6 @@ void drawLineOnSurface(SDL_Surface *surface, int x1, int y1, int x2, int y2);
 void putPixel(SDL_Surface *surface, int x, int y);
 
 void detectGrids(char* filepath);
-void detectLines(char* filepath);
 void detection(char* filepath);
 
 #endif
