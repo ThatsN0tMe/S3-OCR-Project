@@ -3,20 +3,31 @@
 
 #include <SDL2/SDL.h>
 
-void detectGrids(char* filepath);
-void detectLines(char* filepath);
 double** getBrightness(SDL_Surface* surface);
 int** detectEdges(SDL_Surface* surface);
+int** detectLines(SDL_Surface* surface, int* size, int* threshold);
 
-int* searchTopRight(SDL_Surface* surface, int x, int y, int pixels);
-int* searchTopLeft(SDL_Surface* surface, int x, int y, int pixels);
-int* searchBottomRight(SDL_Surface* surface, int x, int y, int pixels);
-int* searchBottomLeft(SDL_Surface* surface, int x, int y, int pixels);
+void searchCorners();
+void pixelLimits(int* x, int* y);
+int getPixelNum(int posX, int posY);
+void resizeSides(int* x1, int* x2, int* y1, int* y2);
+int* searchTopRight(int x, int y, int pixels);
+int* searchTopLeft(int x, int y, int pixels);
+int* searchBottomRight(int x, int y, int pixels);
+int* searchBottomLeft(int x, int y, int pixels);
 
-void drawPolarLine(SDL_Surface* surface, double rho, double theta, int h, int w);
+int isWhiteLine(SDL_Surface* surface, int x1, int y1, int x2, int y2);
+int getNumLines(SDL_Surface* surface, int x1, int x2, int* y1, int* y2);
+int getNumColumns(SDL_Surface* surface, int x1, int x2, int y1, int y2);
+void detectLetters(SDL_Surface* surface, int x1, int x2, int y1, int y2);
+
+int* polarToCartesian(double rho, double theta, int w, int h);
+void drawWhiteRect(SDL_Surface* surface, int posX, int posY, int rectW, int rectH);
+void drawPolarLine(SDL_Surface* surface, double rho, double theta, int w, int h);
 void drawLineOnSurface(SDL_Surface *surface, int x1, int y1, int x2, int y2);
 void putPixel(SDL_Surface *surface, int x, int y);
 
+void detectGrids(char* filepath);
 void detection(char* filepath);
 
 #endif
