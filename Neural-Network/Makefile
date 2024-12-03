@@ -1,7 +1,19 @@
-# Makefile
+CC = gcc
+CFLAGS = -Wall -g
+LDFLAGS = -lz
 
-all: 
-	gcc -Wall -Wextra -Werror -std=c99 -o OCR *.c -lm
-	
+# Fichiers sources
+SRC = main.c read_emnist.c
+OBJ = $(SRC:.c=.o)
+
+# Cible par défaut
+all: main
+
+# Compilation
+main: $(OBJ)
+	$(CC) $(OBJ) -o main $(LDFLAGS)
+
+# Nettoyage
 clean:
-	rm -f *.o *.d OCR
+	rm -f $(OBJ) main
+
