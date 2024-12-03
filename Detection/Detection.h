@@ -19,7 +19,7 @@ int* searchBottomLeft(int x, int y, int pixels);
 int isWhiteLine(SDL_Surface* surface, int x1, int y1, int x2, int y2);
 int getNumLines(SDL_Surface* surface, int x1, int x2, int* y1, int* y2);
 int getNumColumns(SDL_Surface* surface, int x1, int x2, int y1, int y2);
-void detectLetters(SDL_Surface* surface, int x1, int x2, int y1, int y2);
+void detectLetters(char* filepath, SDL_Surface* surface, int x1, int x2, int y1, int y2);
 
 int* polarToCartesian(double rho, double theta, int w, int h);
 void drawWhiteRect(SDL_Surface* surface, int posX, int posY, int rectW, int rectH);
@@ -29,5 +29,7 @@ void putPixel(SDL_Surface *surface, int x, int y);
 
 void detectGrids(char* filepath);
 void detection(char* filepath);
+
+void cut_and_save(char* input_file, char* output_file, int x1, int y1, int x2, int y2);
 
 #endif

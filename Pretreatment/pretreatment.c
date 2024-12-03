@@ -16,8 +16,8 @@ void image_change() {
     free_stack();
 }
 
-void undo(gpointer data) {
-    SDL_Surface* previous_surface = pop(data);
+void undo() {
+    SDL_Surface* previous_surface = pop();
     if (previous_surface) {
         SDL_FreeSurface(surface);
         surface = previous_surface;
@@ -374,7 +374,8 @@ void pretreatment(char *filepath) {
             gaussian();
         }
         else if (!strcmp(filename, "level_2_image_2.png"))
-            median();
+            for (int i = 0; i < 4; i++)
+                median();
         else if (!strcmp(filename, "level_4_image_1.png"))
             for (int i = 0; i < 4; i++)
                 contrast();

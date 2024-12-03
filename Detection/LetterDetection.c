@@ -3,9 +3,9 @@
 #include <math.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <libgen.h>
 #include "Detection.h"
 #include "../Functions.h"
-
 
 static int pixelToleranceX = 15,
            pixelToleranceY = 15;
@@ -163,7 +163,7 @@ void removeLines(SDL_Surface* surface, int x1, int x2, int y1, int y2) {
 
 
 
-void detectLetters(SDL_Surface* surface, int x1, int x2, int y1, int y2) {
+void detectLetters(char* filepath, SDL_Surface* surface, int x1, int x2, int y1, int y2) {
 
     //Nombre de lignes et de colonnes de lettres
     int lines = getNumLines(surface, x1, x2, &y1, &y2) - 1,
@@ -256,6 +256,17 @@ void detectLetters(SDL_Surface* surface, int x1, int x2, int y1, int y2) {
             drawLineOnSurface(surface, coords[2], coords[1], coords[2], coords[3]);
             drawLineOnSurface(surface, coords[0], coords[1], coords[0], coords[3]);
             drawLineOnSurface(surface, coords[0], coords[3], coords[2], coords[3]);
+
+            // Couper et sauvegarder chaque lettre
+            char* dir = strdup(filepath);
+            char* path = dirname(dir);
+
+            char output_file[256];
+            snprintf(output_file, sizeof(output_file), "%s/letter/letter_%d_%d.png", path, i, j);
+
+            cut_and_save(filepath, output_file, coords[0], coords[1], coords[2], coords[3]);
+
+            free(dir);
         }
     }
 }

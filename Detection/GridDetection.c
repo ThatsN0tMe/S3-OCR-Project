@@ -104,7 +104,7 @@ void resizeSides(int* x1, int* x2, int* y1, int* y2) {
 
 
 
-void searchCorners() {
+void searchCorners(char* filepath) {
     int x = sqNum / 2 * sqW,
         y = sqNum / 2 * sqH,
         pixelNum = getPixelNum(x, y);
@@ -137,7 +137,7 @@ void searchCorners() {
     pixelLimits(&x2, &y2);
 
 
-    detectLetters(surface, x1, x2, y1, y2);
+    detectLetters(filepath, surface, x1, x2, y1, y2);
 
     /*drawLineOnSurface(surface, x1, y1, x2, y1);
     drawLineOnSurface(surface, x2, y1, x2, y2);
@@ -269,7 +269,7 @@ void detectGrids(char* filepath) {
     sqW = (width - 1) / sqNum;
     sqH = (height - 1) / sqNum;
 
-    searchCorners(surface);
+    searchCorners(filepath);
 
     if (SDL_SaveBMP(surface, filepath) != 0) {
         printf("Image saving error: %s\n", SDL_GetError());

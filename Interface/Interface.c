@@ -177,7 +177,6 @@ void select_file(GtkWidget *button, gpointer user_data) {
 
 //Creer un nouveau path dans le directory /Modified pour pas changer le fichier originel
 char* getDestPath(const char* sourcepath) {
-
     if (sourcepath == NULL) return NULL;
 
     char* res = NULL;
@@ -192,19 +191,27 @@ char* getDestPath(const char* sourcepath) {
     }
     startIndex = endIndex - 1;
 
+    const char* fileNameWithExt = sourcepath + endIndex + 1;
+    printf("%s\n\n", fileNameWithExt);
+
+    const char* dot = strrchr(fileNameWithExt, '.');
+    int fileNameLength = (dot != NULL) ? (size_t)(dot - fileNameWithExt) : strlen(fileNameWithExt);
+
     while (startIndex >= 0 && sourcepath[startIndex] != '/'){
         startIndex--;
     }
 
-
-    res = calloc(startIndex + index - endIndex + 10, 1);
+    res = calloc(startIndex + index - endIndex + fileNameLength + strlen(dir) + strlen(fileNameWithExt) + 2, 1);
 
     if (startIndex > 0) {
         memcpy(res, sourcepath, startIndex);
     }
-    memcpy(res + startIndex, dir, 9);
-    memcpy(res + startIndex + 9, sourcepath + endIndex, index - endIndex);
-
+    memcpy(res + startIndex, dir, strlen(dir));
+    memcpy(res + startIndex + strlen(dir), "/", 1);
+    memcpy(res + startIndex + strlen(dir) + 1, fileNameWithExt, fileNameLength);
+    memcpy(res + startIndex + strlen(dir) + 1 + fileNameLength, "/", 1);
+    memcpy(res + startIndex + strlen(dir) + 1 + fileNameLength + 1, fileNameWithExt, strlen(fileNameWithExt));
+    printf("%s\n\n", res);
     return res;
 }
 
