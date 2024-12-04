@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "Detection.h"
@@ -126,23 +125,21 @@ void searchCorners(char* filepath) {
 
     pixelLimits(&x1, &y1);
     pixelLimits(&x2, &y2);
-
     resizeSides(&x1, &x2, &y1, &y2);
     x1 -= 10;
     x2 += 10;
     y1 -= 10;
     y2 += 10;
-
     pixelLimits(&x1, &y1);
     pixelLimits(&x2, &y2);
 
+    detectLetters(surface, filepath, x1, x2, y1, y2);
 
-    detectLetters(filepath, surface, x1, x2, y1, y2);
+    SDL_Rect rect = {x1, y1, x2 - x1, y2 - y1};
+    Uint32 color = SDL_MapRGB(surface->format, 255, 255, 255);
+    SDL_FillRect(surface, &rect, color);
 
-    /*drawLineOnSurface(surface, x1, y1, x2, y1);
-    drawLineOnSurface(surface, x2, y1, x2, y2);
-    drawLineOnSurface(surface, x2, y2, x1, y2);
-    drawLineOnSurface(surface, x1, y2, x1, y1);*/
+    detectWords(surface, filepath);
 }
 
 
@@ -251,7 +248,7 @@ int* searchBottomLeft(int x, int y, int pixels) {
 
 
 
-void detectGrids(char* filepath) {
+void detectGrid(char* filepath) {
     if (filepath == NULL) {
         puts("Filepath is undefined");
         return;
@@ -264,10 +261,8 @@ void detectGrids(char* filepath) {
         return;
     }
 
-    int width = surface->w,
-        height = surface->h;
-    sqW = (width - 1) / sqNum;
-    sqH = (height - 1) / sqNum;
+    sqW = (surface->w - 1) / sqNum;
+    sqH = (surface->h - 1) / sqNum;
 
     searchCorners(filepath);
 

@@ -7,6 +7,6 @@
 #include "../Rotate/rotate.h"
 
 void detection(char* filepath) {
-    autoRotate(filepath); //rota auto
-    detectGrids(filepath);
+    autoRotate(filepath);
+    detectGrid(filepath);
 }

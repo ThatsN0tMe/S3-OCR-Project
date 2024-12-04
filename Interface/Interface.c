@@ -161,8 +161,10 @@ void select_file(GtkWidget *button, gpointer user_data) {
         char* sourcepath = gtk_file_chooser_get_filename(chooser);
         filepath = getDestPath(sourcepath);
         
-        if (filepath == NULL || cloneFile(sourcepath, filepath) == -1)
+        if (filepath == NULL || cloneFile(sourcepath, filepath) == -1) {
+            puts("\n\n\n\n\n\ncaca\n\n\n\n\n");
             return;
+        }
 
         display_image_options();
         gtk_button_set_label(GTK_BUTTON(button), "File open !");
@@ -177,6 +179,7 @@ void select_file(GtkWidget *button, gpointer user_data) {
 
 //Creer un nouveau path dans le directory /Modified pour pas changer le fichier originel
 char* getDestPath(const char* sourcepath) {
+
     if (sourcepath == NULL) return NULL;
 
     char* res = NULL;
@@ -192,8 +195,6 @@ char* getDestPath(const char* sourcepath) {
     startIndex = endIndex - 1;
 
     const char* fileNameWithExt = sourcepath + endIndex + 1;
-    printf("%s\n\n", fileNameWithExt);
-
     const char* dot = strrchr(fileNameWithExt, '.');
     int fileNameLength = (dot != NULL) ? (size_t)(dot - fileNameWithExt) : strlen(fileNameWithExt);
 
@@ -211,12 +212,11 @@ char* getDestPath(const char* sourcepath) {
     memcpy(res + startIndex + strlen(dir) + 1, fileNameWithExt, fileNameLength);
     memcpy(res + startIndex + strlen(dir) + 1 + fileNameLength, "/", 1);
     memcpy(res + startIndex + strlen(dir) + 1 + fileNameLength + 1, fileNameWithExt, strlen(fileNameWithExt));
-    printf("%s\n\n", res);
+    
     return res;
 }
 
 
-//Clone le fichier originel dans le nouveau path au cas ou un golmon rotate avant d'appliquer le pretraitement
 int cloneFile(const char *src_path, const char *dest_path) {
     FILE *src = fopen(src_path, "rb");
     FILE *dest = fopen(dest_path, "wb");

@@ -7,7 +7,7 @@ int Max(int a, int b) {
     return b;
 }
 
-int swap(int* a, int* b) {
+void swap(int* a, int* b) {
     int temp = *a;
     *a = *b;
     *b = temp; 
