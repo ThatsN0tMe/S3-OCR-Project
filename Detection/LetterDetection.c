@@ -31,7 +31,6 @@ int isWhiteLine(SDL_Surface* surface, int x1, int y1, int x2, int y2) {
             if (r < 200 || g < 200 || b < 200)
                 return 0;
         }
-
         return 1;
     }
 
@@ -47,10 +46,8 @@ int isWhiteLine(SDL_Surface* surface, int x1, int y1, int x2, int y2) {
             if (r < 200 || g < 200 || b < 200)
                 return 0;
         }
-
         return 1;
     }
-
     return 0;
 }
 
@@ -110,7 +107,7 @@ int getNumColumns(SDL_Surface* surface, int x1, int x2, int y1, int y2) {
     int numColumns = 0,
         nextColumn = 1;
 
-    for (int x = x1; x < x2; x += 10) {
+    for (int x = x1; x < x2; x++) {
         if (isWhiteLine(surface, x, y1 + pixelToleranceY, x, y2 - pixelToleranceY)) {
             nextColumn = 1;
         }
@@ -178,9 +175,9 @@ void detectLetters(SDL_Surface* surface, char* filepath, int x1, int x2, int y1,
         }
     }
 
+
     // -----------------------------------------------------------------------
 
-    printf("%d  |  %d\n", lines, columns);
 
     int nextTopLine = 1,
         lineCounter = 0;
@@ -203,13 +200,12 @@ void detectLetters(SDL_Surface* surface, char* filepath, int x1, int x2, int y1,
             }
             nextTopLine = 1;
             lineCounter++;
-            printf("%d\n", lineCounter);
         }
     }
     
     // -----------------------------------------------------------------------
 
-    puts("aaaaa");
+
     int nextLeftColumn = 1,
         columnCounter = 0;
 
@@ -239,13 +235,14 @@ void detectLetters(SDL_Surface* surface, char* filepath, int x1, int x2, int y1,
 
     for (int i = 0; i < lines; i++) {
         for (int j = 0; j < columns; j++) {
+
             int* coords = letterCoords[i][j];
+
             drawLineOnSurface(surface, coords[0], coords[1], coords[2], coords[1]);
             drawLineOnSurface(surface, coords[2], coords[1], coords[2], coords[3]);
             drawLineOnSurface(surface, coords[0], coords[1], coords[0], coords[3]);
             drawLineOnSurface(surface, coords[0], coords[3], coords[2], coords[3]);
 
-            
             // Couper et sauvegarder chaque lettre
             char* dir = strdup(filepath);
             char* path = dirname(dir);
@@ -258,6 +255,14 @@ void detectLetters(SDL_Surface* surface, char* filepath, int x1, int x2, int y1,
             free(dir);
         }
     }
+
+    for (int i = 0; i < lines; i++) {
+        for (int j = 0; j < columns; j++) {
+            free(letterCoords[i][j]);
+        }
+        free(letterCoords[i]);
+    }
+    free(letterCoords);
 
 
     // TEST ARNAUD EFFACE PAS STP BEBOU C POUR TRACER SUR L'IMAGE FINAL

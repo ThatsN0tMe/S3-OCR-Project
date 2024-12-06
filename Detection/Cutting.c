@@ -60,14 +60,12 @@ void cut_and_save(char* input_file, char* output_file, int x1, int y1, int x2, i
     SDL_Surface* image = IMG_Load(input_file);
     if (!image) {
         printf("Image loading error: %s\n", IMG_GetError());
-        SDL_Quit();
         return;
     }
 
     if (x1 < 0 || y1 < 0 || x2 > image->w || y2 > image->h || x1 >= x2 || y1 >= y2) {
         printf("Invalid coordinates.\n");
         SDL_FreeSurface(image);
-        SDL_Quit();
         return;
     }
 

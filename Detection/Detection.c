@@ -33,11 +33,16 @@ void detection(char* filepath) {
 
     detectLetters(surface, filepath, x1, x2, yy1, y2);
 
+
+    //Detection des mots !!! Ne marchent que pour les images 1 1, 1 2 et 2 2 !!! Sinon y a des erreures bizarres
+
     /*SDL_Rect rect = {x1, yy1, x2 - x1, y2 - yy1};
     Uint32 color = SDL_MapRGB(surface->format, 255, 255, 255);
     SDL_FillRect(surface, &rect, color);
 
     detectWords(surface, filepath);*/
+
+    //Fin detection des mots
 
     if (SDL_SaveBMP(surface, filepath) != 0) {
         printf("Image saving error: %s\n", SDL_GetError());

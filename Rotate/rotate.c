@@ -60,12 +60,19 @@ void rotate(char* filepath, double angle) {
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
-    gtk_window_close(GTK_WINDOW(image_window));
+
+    if (image_window != NULL) {
+        gtk_window_close(GTK_WINDOW(image_window));
+        image_window = NULL;
+    }
 }
 
 
 void slider_image_update(GtkRange *range) {
     update_image(gtk_range_get_value(range));
+}
+void on_window_destroy() {
+    image_window = NULL;
 }
 
 
@@ -139,6 +146,8 @@ void create_rotate_window(char *filepath) {
     gtk_box_pack_start(GTK_BOX(hbox), button_save, FALSE, FALSE, 1);
     
     g_signal_connect(slider, "value-changed", G_CALLBACK(slider_image_update), NULL);
+
+    g_signal_connect(image_window, "destroy", G_CALLBACK(on_window_destroy), NULL);
 
     gtk_widget_show_all(image_window);
 }
