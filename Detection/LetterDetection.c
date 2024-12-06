@@ -6,6 +6,8 @@
 #include "Detection.h"
 #include "../Functions.h"
 
+#include "../Solver/solver.h"
+
 
 static int pixelToleranceX = 15,
            pixelToleranceY = 15;
@@ -257,7 +259,7 @@ void detectLetters(SDL_Surface* surface, char* filepath, int x1, int x2, int y1,
             drawLineOnSurface(surface, coords[0], coords[1], coords[0], coords[3]);
             drawLineOnSurface(surface, coords[0], coords[3], coords[2], coords[3]);
 
-            /*
+            
             // Couper et sauvegarder chaque lettre
             char* dir = strdup(filepath);
             char* path = dirname(dir);
@@ -267,7 +269,30 @@ void detectLetters(SDL_Surface* surface, char* filepath, int x1, int x2, int y1,
 
             cut_and_save(filepath, output_file, coords[0], coords[1], coords[2], coords[3]);
 
-            free(dir);*/
+            free(dir);
         }
     }
+
+
+    // TEST ARNAUD EFFACE PAS STP BEBOU C POUR TRACER SUR L'IMAGE FINAL
+/*
+    char* grid[] = {
+        "MSWATERMELON",
+        "YTBNEPEWRMAE",
+        "RRLWPAPAYANA",
+        "RANLEMONANEP",
+        "EWLEAPRIABPR",
+        "BBILBBWBRLAY",
+        "KEMPMAWLRARB",
+        "CREPRNRERRGR",
+        "ARYAYAOANLAM",
+        "LYYARNERKIWI",
+        "BEBAAANAAPRT",
+        "YRREBPSARNNW",
+        "YRREBEULBLGI",
+        "TYPATEAEPAGE"
+    };
+
+    find_word("/home/corentin/Documents/S3-OCR-Project/Grids/Source/level_1_image_1.png", grid, letterCoords, 14, 12, "pwlrl");
+*/
 }

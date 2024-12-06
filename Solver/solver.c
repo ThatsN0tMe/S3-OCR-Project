@@ -3,6 +3,10 @@
 #include <string.h>
 #include <err.h>
 #include <ctype.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+
+#define MARGIN 20
 
 char** read_file(char* filepath, int* lines, int* columns) { //Reads from a file and copies it to a variable
     FILE* file = fopen(filepath, "r"); //Read file
@@ -50,37 +54,96 @@ int check_direction(char** grid, int lines, int columns, int x, int y, int dx, i
     return 1;
 }
 
-int find_word(char** grid, int lines, int columns, char* word, int* x0, int* y0, int* x1, int* y1) { //Search for the word and store the coordinates in variables
+void draw_line(SDL_Surface* image, int x0, int y0, int x1, int y1, Uint32 color) {
+    int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+    int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+    int err = dx + dy, e2;
+
+    while (1) {
+        if (x0 >= 0 && x0 < image->w && y0 >= 0 && y0 < image->h) {
+            ((Uint32*)image->pixels)[y0 * image->w + x0] = color;
+        }
+        if (x0 == x1 && y0 == y1) break;
+        e2 = 2 * err;
+        if (e2 >= dy) {
+            err += dy;
+            x0 += sx;
+        }
+        if (e2 <= dx) {
+            err += dx;
+            y0 += sy;
+        }
+    }
+}
+
+void draw_rect(SDL_Surface* image, int x0, int y0, int x1, int y1, Uint32 color) {
+    draw_line(image, x0, y0, x1, y0, color);
+    draw_line(image, x1, y0, x1, y1, color);
+    draw_line(image, x1, y1, x0, y1, color);
+    draw_line(image, x0, y1, x0, y0, color);
+}
+
+int find_word(char* filepath, char** grid, int*** coordinates, int lines, int columns, char* word) {
     int directions[8][2] = {
         {1, 0},   // Right
         {0, 1},   // Down
         {1, 1},   // Diagonal bottom right
-        {0, -1},  // High
+        {0, -1},  // Up
         {-1, 0},  // Left
         {-1, -1}, // Diagonal top left
         {-1, 1},  // Diagonal bottom left
         {1, -1}   // Diagonal top right
     };
-    for (int y = 0; y < lines; y++) { //Search on the grid
+
+    SDL_Surface* image = IMG_Load(filepath);
+    if (!image) {
+        printf("Error loading image: %s\n", IMG_GetError());
+        return 0;
+    }
+
+    Uint32 red_color = SDL_MapRGB(image->format, 255, 0, 0);
+
+    for (int y = 0; y < lines; y++) {
         for (int x = 0; x < columns; x++) {
-            if (tolower(grid[y][x]) == tolower(word[0])) { //If it's egual to the first letter of the word
-                for (int d = 0; d < 8; d++) { //Chose a research direction
-                    int dx = directions[d][0]; //x direction
-                    int dy = directions[d][1]; //y direction
-                    if (check_direction(grid, lines, columns, x, y, dx, dy, word)) { //If the word exists, then store the coordinates
-                        *x0 = x; //Coordinate of the beginning of the word
-                        *y0 = y;
-                        *x1 = x + (strlen(word) - 1) * dx; //Coordinate of the end of the word
-                        *y1 = y + (strlen(word) - 1) * dy;
+            if (tolower(grid[y][x]) == tolower(word[0])) {
+                for (int d = 0; d < 8; d++) {
+                    int dx = directions[d][0];
+                    int dy = directions[d][1];
+
+                    if (check_direction(grid, lines, columns, x, y, dx, dy, word)) {
+                        int x1 = x + (strlen(word) - 1) * dx;
+                        int y1 = y + (strlen(word) - 1) * dy;
+
+                        if (d == 2 || d == 5 || d == 4 || d== 7)
+                            draw_line(image,
+                            coordinates[y][x][0] + MARGIN,
+                            coordinates[y][x][1] + MARGIN,
+                            coordinates[y1][x1][2],
+                            coordinates[y1][x1][3],
+                            red_color);
+                        else
+                            draw_rect(image,
+                            coordinates[y][x][0] + MARGIN,
+                            coordinates[y][x][1] + MARGIN,
+                            coordinates[y1][x1][2],
+                            coordinates[y1][x1][3],
+                            red_color);
+
+                        IMG_SavePNG(image, "/home/corentin/Documents/S3-OCR-Project/Grids/Modified/prout.png");
+                        SDL_FreeSurface(image);
                         return 1;
                     }
                 }
             }
         }
     }
+
+    printf("Not found\n");
+    SDL_FreeSurface(image);
     return 0;
 }
 
+/*
 void print_grid(char** grid, int lines, int columns) {
     printf("The grid size is %d lines * %d columns :\n\n", lines, columns);
     for (int y = -4; y < lines; y++) {
@@ -113,7 +176,7 @@ int main(int argc, char* argv[]) { //Main function that searches for the word in
     if (grid == NULL)
         return 0;
 
-/*
+
     size_t length = strlen(word);
     for (size_t i = 0; i < length; i++)
         word[i] = tolower(word[i]);
@@ -121,7 +184,7 @@ int main(int argc, char* argv[]) { //Main function that searches for the word in
         print_grid(grid, lines, columns);
         return 1;
     }
-*/
+
 
     int x0, y0, x1, y1;
     if (find_word(grid, lines, columns, word, &x0, &y0, &x1, &y1))
@@ -135,3 +198,4 @@ int main(int argc, char* argv[]) { //Main function that searches for the word in
 
     return 1;
 }
+*/
