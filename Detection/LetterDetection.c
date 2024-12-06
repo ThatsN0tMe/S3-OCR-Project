@@ -293,6 +293,6 @@ void detectLetters(SDL_Surface* surface, char* filepath, int x1, int x2, int y1,
         "TYPATEAEPAGE"
     };
 
-    find_word("/home/corentin/Documents/S3-OCR-Project/Grids/Source/level_1_image_1.png", grid, letterCoords, 14, 12, "bara");
+    find_word("/home/corentin/Documents/S3-OCR-Project/Grids/Source/level_1_image_1.png", grid, letterCoords, 14, 12, "pwlrl");
 */
 }
