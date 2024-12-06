@@ -5,7 +5,6 @@
 #include <libgen.h>
 #include "Detection.h"
 #include "../Functions.h"
-
 #include "../Solver/solver.h"
 
 
@@ -56,25 +55,22 @@ int isWhiteLine(SDL_Surface* surface, int x1, int y1, int x2, int y2) {
 }
 
 
-int getNumLines(SDL_Surface* surface, int x1, int x2, int* y1, int* y2) {
+int getNumLines(SDL_Surface* surface, int x1, int x2, int* y1, int y2) {
 
     int numLines = 0,
         nextLine = 1,
         currentSize = 0,
         averageSize = 0;
 
-    for (int y = *y1; y < *y2; y++) {
-
+    for (int y = *y1; y < y2; y++) {
         if (isWhiteLine(surface, x1 + pixelToleranceX, y, x2 - pixelToleranceX, y)) {
-            if (nextLine) {
-                nextLine = 0;
-                numLines++;
-                averageSize += currentSize;
-                currentSize = 0;
-            }
-        }
-        else if (!nextLine) {
             nextLine = 1;
+        }
+        else if (nextLine) {
+            numLines++;
+            nextLine = 0;
+            averageSize += currentSize;
+            currentSize = 0;
         }
         currentSize++;
     }
@@ -87,20 +83,17 @@ int getNumLines(SDL_Surface* surface, int x1, int x2, int* y1, int* y2) {
     nextLine = 0;
     currentSize = 0;
 
-    for (int y = *y1; y < *y2; y++) {
-        
-        if (isWhiteLine(surface, x1 + pixelToleranceX, y, x2 - pixelToleranceX, y)) {
+    for (int y = *y1; y < y2; y++) {
 
+        if (isWhiteLine(surface, x1 + pixelToleranceX, y, x2 - pixelToleranceX, y)) {
             if (!nextLine) {
                 currentSize++;
                 continue;
             }
-
             if ((double)currentSize > (double)averageSize * 1.45) {
                 *y1 = y;
                 return numLines - 1;
             }
-            
             break;
         }
         
@@ -111,25 +104,25 @@ int getNumLines(SDL_Surface* surface, int x1, int x2, int* y1, int* y2) {
     return numLines;
 }
 
+
 int getNumColumns(SDL_Surface* surface, int x1, int x2, int y1, int y2) {
 
     int numColumns = 0,
         nextColumn = 1;
 
-    for (int x = x1; x < x2; x++) {
+    for (int x = x1; x < x2; x += 10) {
         if (isWhiteLine(surface, x, y1 + pixelToleranceY, x, y2 - pixelToleranceY)) {
-            if (nextColumn) {
-                nextColumn = 0;
-                numColumns++;
-            }
-        }
-        else if (!nextColumn) {
             nextColumn = 1;
+        }
+        else if (nextColumn) {
+            nextColumn = 0;
+            numColumns++;
         }
     }
 
     return numColumns;
 }
+
 
 
 void removeLines(SDL_Surface* surface, int x1, int x2, int y1, int y2) {
@@ -151,13 +144,11 @@ void removeLines(SDL_Surface* surface, int x1, int x2, int y1, int y2) {
                     coords[1] += y1;
                     coords[3] += y1;
                     drawWhiteRect(surface, coords[0] - 5, coords[1], 10, coords[3] - coords[1]);
-                    //drawLineOnSurface(surface, coords[0], coords[1], coords[2], coords[3]);
                 }
                 else if (coords[1] == coords[3]) {
                     coords[0] += x1;
                     coords[2] += x1;
-                    drawWhiteRect(surface, coords[0], coords[1] - 5, coords[2] - coords[0], 10);                    
-                    //drawLineOnSurface(surface, coords[0], coords[1], coords[2], coords[3]);
+                    drawWhiteRect(surface, coords[0], coords[1] - 5, coords[2] - coords[0], 10);
                 }
             }
         }
@@ -165,16 +156,17 @@ void removeLines(SDL_Surface* surface, int x1, int x2, int y1, int y2) {
 }
 
 
+
 void detectLetters(SDL_Surface* surface, char* filepath, int x1, int x2, int y1, int y2) {
 
     //Nombre de lignes et de colonnes de lettres
-    int lines = getNumLines(surface, x1, x2, &y1, &y2) - 1,
-        columns = getNumColumns(surface, x1, x2, y1, y2) - 1;
+    int lines = getNumLines(surface, x1, x2, &y1, y2),
+        columns = getNumColumns(surface, x1, x2, y1, y2);
 
     if (lines + columns < 10) {
         removeLines(surface, x1, x2, y1, y2);
-        lines = getNumLines(surface, x1, x2, &y1, &y2) - 1;
-        columns = getNumColumns(surface, x1, x2, y1, y2) - 1;
+        lines = getNumLines(surface, x1, x2, &y1, y2);
+        columns = getNumColumns(surface, x1, x2, y1, y2);
     }
 
     //Liste 3 dimensionnelle dont la 3eme represente les corners topleft et bottomright de la lettre : x1, y1 | x2, y2
@@ -188,62 +180,56 @@ void detectLetters(SDL_Surface* surface, char* filepath, int x1, int x2, int y1,
 
     // -----------------------------------------------------------------------
 
+    printf("%d  |  %d\n", lines, columns);
 
-    int nextLine = 1,
+    int nextTopLine = 1,
         lineCounter = 0;
 
-    for (int y = y1; y < y2; y++) {
+    for (int y = y1 + 1; y < y2; y++) {
 
         if (!isWhiteLine(surface, x1 + pixelToleranceX, y, x2 - pixelToleranceX, y)) {
-            if (!nextLine) {
-                nextLine = 1;
+            if (nextTopLine) {
+
+                for (int i = 0; i < columns; i++) {
+                    letterCoords[lineCounter][i][1] = y - 1;
+                }
+                nextTopLine = 0;
             }
         }
-        else if (nextLine) {
+        else if (!nextTopLine) {
 
-            if (lineCounter < lines) {
-                for (int i = 0; i < columns; i++) {
-                    letterCoords[lineCounter][i][1] = y;
-                }
+            for (int i = 0; i < columns; i++) {
+                letterCoords[lineCounter][i][3] = y;
             }
-            if (lineCounter > 0) {
-                for (int i = 0; i < columns; i++) {
-                    letterCoords[lineCounter - 1][i][3] = y;
-                }
-            }
-            
-            nextLine = 0;
+            nextTopLine = 1;
             lineCounter++;
+            printf("%d\n", lineCounter);
         }
     }
     
     // -----------------------------------------------------------------------
 
-
-    int nextColumn = 1,
+    puts("aaaaa");
+    int nextLeftColumn = 1,
         columnCounter = 0;
 
-    for (int x = x1; x < x2; x++) {
+    for (int x = x1 + 1; x < x2; x++) {
 
         if (!isWhiteLine(surface, x, y1 + pixelToleranceY, x, y2 - pixelToleranceY)) {
-            if (!nextColumn) {
-                nextColumn = 1;
+            if (nextLeftColumn) {
+
+                for (int i = 0; i < lines; i++) {
+                    letterCoords[i][columnCounter][0] = x - 1;
+                }
+                nextLeftColumn = 0;
             }
         }
-        else if (nextColumn) {
+        else if (!nextLeftColumn) {
 
-            if (columnCounter < columns) {
-                for (int i = 0; i < lines; i++) {
-                    letterCoords[i][columnCounter][0] = x;
-                }
+            for (int i = 0; i < lines; i++) {
+                letterCoords[i][columnCounter][2] = x;
             }
-            if (columnCounter > 0) {
-                for (int i = 0; i < lines; i++) {
-                    letterCoords[i][columnCounter - 1][2] = x;
-                }
-            }
-
-            nextColumn = 0;
+            nextLeftColumn = 1;
             columnCounter++;
         }
     }

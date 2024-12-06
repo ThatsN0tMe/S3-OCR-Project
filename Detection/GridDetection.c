@@ -6,10 +6,7 @@
 #include "../Functions.h"
 
 
-static int sqW = 0,
-           sqH = 0,
-           sqNum = 20,
-           thresholdCoef = 4;
+static int sqW = 0, sqH = 0, sqNum = 20, thresholdCoef = 4;
 static SDL_Surface* surface = NULL;
 
 
@@ -38,7 +35,6 @@ int getPixelNum(int posX, int posY) {
 }
 
 
-
 void pixelLimits(int* x, int* y) {
     if (*x < 0) *x = 0;
     else if (*x >= surface->w) *x = surface->w - 1;
@@ -46,7 +42,7 @@ void pixelLimits(int* x, int* y) {
     else if (*y >= surface->h) *y = surface->h - 1;
 }
 
-void resizeSides(int* x1, int* x2, int* y1, int* y2) {
+void resizeSides(int* x1, int* y1, int* x2, int* y2) {
 
     if (!isWhiteLine(surface, *x1, *y1, *x1, *y2)) {
         do {
@@ -101,46 +97,6 @@ void resizeSides(int* x1, int* x2, int* y1, int* y2) {
     }
 }
 
-
-
-void searchCorners(char* filepath) {
-    int x = sqNum / 2 * sqW,
-        y = sqNum / 2 * sqH,
-        pixelNum = getPixelNum(x, y);
-    
-    int *topRight = searchTopRight(x, y, pixelNum),
-        *topLeft = searchTopLeft(x, y, pixelNum),
-        *bottomRight = searchBottomRight(x, y, pixelNum),
-        *bottomLeft = searchBottomLeft(x, y, pixelNum);
-
-    int x1 = Max(topLeft[0], bottomLeft[0]),
-        x2 = Min(topRight[0], bottomRight[0]),
-        y1 = Max(topLeft[1], topRight[1]),
-        y2 = Min(bottomLeft[1], bottomRight[1]);
-    
-    free(topRight);
-    free(topLeft);
-    free(bottomRight);
-    free(bottomLeft);
-
-    pixelLimits(&x1, &y1);
-    pixelLimits(&x2, &y2);
-    resizeSides(&x1, &x2, &y1, &y2);
-    x1 -= 10;
-    x2 += 10;
-    y1 -= 10;
-    y2 += 10;
-    pixelLimits(&x1, &y1);
-    pixelLimits(&x2, &y2);
-
-    detectLetters(surface, filepath, x1, x2, y1, y2);
-
-    SDL_Rect rect = {x1, y1, x2 - x1, y2 - y1};
-    Uint32 color = SDL_MapRGB(surface->format, 255, 255, 255);
-    SDL_FillRect(surface, &rect, color);
-
-    detectWords(surface, filepath);
-}
 
 
 int* searchTopRight(int x, int y, int pixels) {
@@ -248,28 +204,42 @@ int* searchBottomLeft(int x, int y, int pixels) {
 
 
 
-void detectGrid(char* filepath) {
-    if (filepath == NULL) {
-        puts("Filepath is undefined");
-        return;
-    }
+int* detectGrid(SDL_Surface* originalSurface) {
 
-    surface = IMG_Load(filepath);
-    if (surface == NULL) {
-        printf("Error loading image: %s\n", IMG_GetError());
-        SDL_Quit();
-        return;
-    }
+    surface = originalSurface;
 
     sqW = (surface->w - 1) / sqNum;
     sqH = (surface->h - 1) / sqNum;
 
-    searchCorners(filepath);
+    int x = sqNum / 2 * sqW,
+        y = sqNum / 2 * sqH,
+        pixelNum = getPixelNum(x, y);
+    
+    int *topRight = searchTopRight(x, y, pixelNum),
+        *topLeft = searchTopLeft(x, y, pixelNum),
+        *bottomRight = searchBottomRight(x, y, pixelNum),
+        *bottomLeft = searchBottomLeft(x, y, pixelNum);
 
-    if (SDL_SaveBMP(surface, filepath) != 0) {
-        printf("Image saving error: %s\n", SDL_GetError());
-    }
-    else {
-        printf("Image processed successfully and saved as '%s'.\n", filepath);
-    }
+    int* coords = malloc(sizeof(int) * 4);
+    coords[0] = Max(topLeft[0], bottomLeft[0]);
+    coords[1] = Max(topLeft[1], topRight[1]);
+    coords[2] = Min(topRight[0], bottomRight[0]);
+    coords[3] = Min(bottomLeft[1], bottomRight[1]);
+    
+    free(topRight);
+    free(topLeft);
+    free(bottomRight);
+    free(bottomLeft);
+
+    pixelLimits(coords, coords + 1);
+    pixelLimits(coords + 2, coords + 3);
+    resizeSides(coords, coords + 1, coords + 2, coords + 3);
+    coords[0] -= 10;
+    coords[1] -= 10;
+    coords[2] += 10;
+    coords[3] += 10;
+    pixelLimits(coords, coords + 1);
+    pixelLimits(coords + 2, coords + 3);
+
+    return coords;    
 }

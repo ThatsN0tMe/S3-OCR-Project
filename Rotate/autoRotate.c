@@ -7,24 +7,17 @@
 #include "../Rotate/rotate.h"
 
 
-void autoRotate(char* filepath) {
-
-    if (filepath == NULL) {
-        puts("Filepath is undefined");
-        return;
-    }
+void autoRotate(char* filepath, int save) {
 
     SDL_Surface* surface = IMG_Load(filepath);
     if (surface == NULL) {
         printf("Error loading image: %s\n", IMG_GetError());
-        SDL_Quit();
         return;
     }
 
     int size = 0,
         threshold = 0;
     int** accumulatorArray = detectLines(surface, &size, &threshold);
-
 
     threshold /= 2;
     int maxTheta = 0, angle = 0;
@@ -45,17 +38,25 @@ void autoRotate(char* filepath) {
     }
 
 
-    if ((int)angle % 90 != 0) {
-        if (angle > 90) {
-            rotate(surface, filepath, 90 - angle);
-        }
-        else {
-            rotate(surface, filepath, -angle);
-        }
-    }
-
     for (int rho = 0; rho < size * 2; rho++) {
         free(accumulatorArray[rho]);
     }
     free(accumulatorArray);
+    SDL_FreeSurface(surface);
+
+
+    if ((int)angle % 90 != 0) {
+        if (angle > 90) {
+            if (save)
+                rotate(filepath, 90 - angle);
+            else
+                update_image(90 - angle);
+        }
+        else {
+            if (save)
+                rotate(filepath, -angle);
+            else
+                update_image(-angle);
+        }
+    }
 }

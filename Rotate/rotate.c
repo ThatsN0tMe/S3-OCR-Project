@@ -6,15 +6,31 @@
 #include "rotate.h"
 
 
-static GdkPixbuf *original_pixbuf;
-static GtkWidget *original_image;
-static gdouble current_angle = 0;
+static GdkPixbuf *original_pixbuf = NULL;
+static GtkWidget *original_image = NULL;
+static GtkWidget *image_window = NULL;
+static double current_angle = 0;
 static char* path = NULL;
-static SDL_Surface* surface = NULL;
 
 
-void rotate(SDL_Surface* originalSurface, char *filepath, double angle) {
+void apply_rotate() {
+    rotate(path, current_angle);
+}
 
+void apply_auto_rotate() {
+    autoRotate(path, 0);
+}
+
+
+void rotate(char* filepath, double angle) {
+
+    SDL_Surface* originalSurface = IMG_Load(filepath);
+    if (originalSurface == NULL) {
+        printf("Error loading image: %s\n", IMG_GetError());
+        return;
+    }
+
+    current_angle = 0;
     SDL_Window *window = SDL_CreateWindow("Rotation", 10000, SDL_WINDOWPOS_CENTERED, originalSurface->w, originalSurface->h, 0);
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_TARGETTEXTURE);
 
@@ -22,16 +38,15 @@ void rotate(SDL_Surface* originalSurface, char *filepath, double angle) {
     SDL_RenderClear(renderer);
 
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, originalSurface);
-    SDL_FreeSurface(originalSurface);
 
     SDL_Rect destRect;
     destRect.w = originalSurface->w;
     destRect.h = originalSurface->h;
+    
+    SDL_FreeSurface(originalSurface);
+    SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormat(0, destRect.w, destRect.h, 32, SDL_PIXELFORMAT_ARGB8888);
 
     SDL_RenderCopyEx(renderer, texture, NULL, NULL, angle, NULL, SDL_FLIP_NONE);
-
-    surface = SDL_CreateRGBSurfaceWithFormat(0, destRect.w, destRect.h, 32, SDL_PIXELFORMAT_ARGB8888);
-
     SDL_RenderReadPixels(renderer, NULL, surface->format->format, surface->pixels, surface->pitch);
 
     if (IMG_SavePNG(surface, filepath) != 0) {
@@ -45,16 +60,18 @@ void rotate(SDL_Surface* originalSurface, char *filepath, double angle) {
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
-    SDL_Quit();
+    gtk_window_close(GTK_WINDOW(image_window));
 }
 
 
-void apply_rotate() {
-    rotate(surface, path, current_angle);
+void slider_image_update(GtkRange *range) {
+    update_image(gtk_range_get_value(range));
 }
 
-void rotate_and_update_image(GtkRange *range) {
-    current_angle = gtk_range_get_value(range);
+
+void update_image(double angle) {
+
+    current_angle = angle;
     int width = gdk_pixbuf_get_width(original_pixbuf);
     int height = gdk_pixbuf_get_height(original_pixbuf);
 
@@ -80,6 +97,7 @@ void rotate_and_update_image(GtkRange *range) {
     g_object_unref(rotated_pixbuf);
 }
 
+
 void create_rotate_window(char *filepath) {
 
     if (filepath == NULL) {
@@ -88,20 +106,13 @@ void create_rotate_window(char *filepath) {
     }
     path = filepath;
 
-    surface = IMG_Load(filepath);
-    if (surface == NULL) {
-        printf("Error loading image: %s\n", IMG_GetError());
-        SDL_Quit();
-        return;
-    }
-
     original_pixbuf = gdk_pixbuf_new_from_file(filepath, NULL);
     if (original_pixbuf == NULL) {
         g_print("Error: Could not load image from file %s\n", filepath);
         return;
     }
 
-    GtkWidget *image_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    image_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(image_window), "Image Rotate");
     gtk_window_set_default_size(GTK_WINDOW(image_window), 1000, 750);
 
@@ -119,11 +130,15 @@ void create_rotate_window(char *filepath) {
     gtk_range_set_value(GTK_RANGE(slider), 0);
     gtk_box_pack_start(GTK_BOX(hbox), slider, TRUE, TRUE, 0);
 
-    GtkWidget *button = gtk_button_new_with_label("Save");
-    g_signal_connect(button, "clicked", G_CALLBACK(apply_rotate), NULL);
-    gtk_box_pack_start(GTK_BOX(hbox), button, FALSE, FALSE, 1);
+    GtkWidget *button_auto = gtk_button_new_with_label("Auto Rotate");
+    g_signal_connect(button_auto, "clicked", G_CALLBACK(apply_auto_rotate), NULL);
+    gtk_box_pack_start(GTK_BOX(hbox), button_auto, FALSE, FALSE, 1);
 
-    g_signal_connect(slider, "value-changed", G_CALLBACK(rotate_and_update_image), NULL);
+    GtkWidget *button_save = gtk_button_new_with_label("Save");
+    g_signal_connect(button_save, "clicked", G_CALLBACK(apply_rotate), NULL);
+    gtk_box_pack_start(GTK_BOX(hbox), button_save, FALSE, FALSE, 1);
+    
+    g_signal_connect(slider, "value-changed", G_CALLBACK(slider_image_update), NULL);
 
     gtk_widget_show_all(image_window);
 }
