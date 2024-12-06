@@ -259,6 +259,8 @@ void * train(void * thr_p) {
 
       pthread_mutex_lock(&mutex);
       forward(input, weights1, bias1, hidden, weights2, bias2, output);
+      pthread_mutex_unlock(&mutex);
+      pthread_mutex_lock(&mutex);
       backward(input, hidden, output, label, weights1, bias1, weights2, bias2, hidden_error, output_error);
       pthread_mutex_unlock(&mutex);
 
@@ -381,7 +383,7 @@ int main(int argc, char *argv[]) {
   float **weights2 = allocate_matrix(HIDDEN_SIZE, OUTPUT_SIZE);
   float *bias2 = allocate_array(OUTPUT_SIZE);
 
-  size_t thread_number = 4;
+  size_t thread_number = 1;
 
   if (strcmp(argv[1], "TRAIN") == 0) {
     // Vérifie le nombre d'arguments
@@ -411,7 +413,7 @@ int main(int argc, char *argv[]) {
 
     shuffle_data(train_images, train_labels, train_size);
 
-    train_size = 100000;
+    train_size = 100;
     for (size_t i = 0; i < thread_number; i++) {
       int bach_size = (train_size / thread_number);
       float *bach_images = train_images + i * bach_size;
