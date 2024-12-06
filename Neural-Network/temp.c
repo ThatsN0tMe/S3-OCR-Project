@@ -11,7 +11,7 @@
 #define INPUT_SIZE 784
 #define HIDDEN_SIZE 128
 #define OUTPUT_SIZE 26
-#define LEARNING_RATE 0.05
+#define LEARNING_RATE 0.01
 #define EPOCHS 1000
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -381,12 +381,12 @@ int main(int argc, char *argv[]) {
   float **weights2 = allocate_matrix(HIDDEN_SIZE, OUTPUT_SIZE);
   float *bias2 = allocate_array(OUTPUT_SIZE);
 
-  size_t thread_number = 1;
+  size_t thread_number = 4;
 
   if (strcmp(argv[1], "TRAIN") == 0) {
     // Vérifie le nombre d'arguments
-    if (argc != 4) {
-      fprintf(stderr, "Usage: %s TRAIN <training_data_file> <train_size>\n", argv[0]);
+    if (argc != 3) {
+      fprintf(stderr, "Usage: %s TRAIN <training_data_file>\n", argv[0]);
       return 1;
     }
 
@@ -411,7 +411,7 @@ int main(int argc, char *argv[]) {
 
     shuffle_data(train_images, train_labels, train_size);
 
-    train_size = 50000;
+    train_size = 100000;
     for (size_t i = 0; i < thread_number; i++) {
       int bach_size = (train_size / thread_number);
       float *bach_images = train_images + i * bach_size;
