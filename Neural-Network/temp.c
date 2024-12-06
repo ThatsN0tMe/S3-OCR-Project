@@ -10,9 +10,9 @@
 
 #define INPUT_SIZE 784
 #define HIDDEN_SIZE 128
-#define OUTPUT_SIZE 26
+#define OUTPUT_SIZE 56
 #define LEARNING_RATE 0.01
-#define EPOCHS 1000
+#define EPOCHS 10000000
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 char * dataset = "/dataset/letters.csv";
@@ -250,29 +250,31 @@ void * train(void * thr_p) {
   float *hidden_error = new_args->hidden_error;
   float *output_error = new_args->output_error;
 
+  int max_bach_size = bach_size;
+  bach_size = 100;
+
+  float* input;
+
   for (int epoch = 0; epoch < EPOCHS; epoch++) {
     float total_error = 0.0f;
-    for (int i = 0; i < bach_size; i++) {
-      float *input = bach_images + i * INPUT_SIZE;
 
+    for (int i = 0; i < bach_size; i++) {
+      input = bach_images + i * INPUT_SIZE;
       int label = train_labels[i];
 
-      pthread_mutex_lock(&mutex);
       forward(input, weights1, bias1, hidden, weights2, bias2, output);
-      pthread_mutex_unlock(&mutex);
-      pthread_mutex_lock(&mutex);
       backward(input, hidden, output, label, weights1, bias1, weights2, bias2, hidden_error, output_error);
-      pthread_mutex_unlock(&mutex);
 
       for (int j = 0; j < OUTPUT_SIZE; j++) {
         float target = (j == label ? 1.0f : 0.0f);
         total_error += 0.5f * powf(target - output[j], 2);
       }
     }
-    shuffle_data(bach_images, train_labels, bach_size);
+    if (epoch % 500 == 0) {
+      shuffle_data(bach_images, train_labels, max_bach_size);
+      save_weights("weights.txt", weights1, bias1, weights2, bias2);
+    }
     printf("Epoch %d completed by thread : %#lx. Average Error: %.4f\n", epoch + 1, pthread_self(), total_error / bach_size);
-    save_weights("weights.txt", weights1, bias1, weights2, bias2);
-
   }
   return EXIT_SUCCESS;
 }
@@ -413,7 +415,6 @@ int main(int argc, char *argv[]) {
 
     shuffle_data(train_images, train_labels, train_size);
 
-    train_size = 100;
     for (size_t i = 0; i < thread_number; i++) {
       int bach_size = (train_size / thread_number);
       float *bach_images = train_images + i * bach_size;
@@ -446,7 +447,6 @@ int main(int argc, char *argv[]) {
     save_weights("weights.txt", weights1, bias1, weights2, bias2);
     printf("Training completed and weights saved to weights.txt.\n");
 
-    train_size = 360000;
     free(train_images);
     free(train_labels);
     free(hidden);
