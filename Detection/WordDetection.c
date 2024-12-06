@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <libgen.h>
 #include "Detection.h"
 
 
@@ -116,6 +117,17 @@ void detectWords(SDL_Surface* surface, char* filepath) {
             drawLineOnSurface(surface, coords[0], coords[1], coords[0], coords[3]);
             drawLineOnSurface(surface, coords[0], coords[3], coords[2], coords[3]);
 			j++;
+
+            // Couper et sauvegarder chaque mot
+            char* dir = strdup(filepath);
+            char* path = dirname(dir);
+
+            char output_file[256];
+            snprintf(output_file, sizeof(output_file), "%s/word/word_%d_letter_%d.png", path, i, j);
+
+            cut_and_save(filepath, output_file, coords[0], coords[1], coords[2], coords[3]);
+
+            free(dir);
 		}
 	}
 

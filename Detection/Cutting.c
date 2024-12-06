@@ -4,7 +4,7 @@
 #include <SDL2/SDL_image.h>
 
 #define IMAGE_SIZE 28
-#define THRESHOLD 0.9
+#define THRESHOLD 1
 
 void convert_black_lines_to_white(SDL_Surface *image) {
     Uint32 black_color = SDL_MapRGB(image->format, 0, 0, 0);

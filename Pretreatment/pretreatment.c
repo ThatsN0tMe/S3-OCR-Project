@@ -376,10 +376,12 @@ void pretreatment(char *filepath) {
         else if (!strcmp(filename, "level_2_image_2.png"))
             for (int i = 0; i < 4; i++)
                 median();
-        else if (!strcmp(filename, "level_4_image_1.png"))
+        else if (!strcmp(filename, "level_4_image_1.png")) {
             for (int i = 0; i < 4; i++)
                 contrast();
-
+            for (int i = 0; i < 2; i++)
+                median();
+        }
         binarize();
         autoProcessApply = 1;
     }
