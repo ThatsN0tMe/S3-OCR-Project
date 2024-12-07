@@ -19,11 +19,15 @@ void freeSurface() {
         SDL_FreeSurface(surface);
         surface = NULL;
     }
+    x1 = 0;
+    yy1 = 0;
+    x2 = 0;
+    y2 = 0;
 }
 
 void saveSurface() {
     if (path == NULL || surface == NULL) {
-        puts("Cannot save image");
+        puts("Cannot save image.");
         return;
     }
 
@@ -53,7 +57,7 @@ void gridDetection() {
 
 void letterDetection() {
     if (x1 == x2 || yy1 == y2) {
-        puts("Cannot detect letters, grid was not correctly detected");
+        puts("Cannot detect letters, grid was not correctly detected before.");
         return;
     }
     detectLetters(surface, path, x1, x2, yy1, y2);
@@ -62,7 +66,7 @@ void letterDetection() {
 
 void wordDetection() {
     if (x1 == x2 || yy1 == y2) {
-        puts("Cannot detect words, grid was not correctly detected");
+        puts("Cannot detect words, grid was not correctly detected before.");
         return;
     }
 
