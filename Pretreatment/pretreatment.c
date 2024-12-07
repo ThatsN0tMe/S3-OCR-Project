@@ -3,45 +3,54 @@
 #include <math.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-#include "pretreatment.h"
-#include "../Interface/Interface.h"
-#include "image_history.h"
 
+#include "pretreatment.h"
+#include "image_history.h"
+#include "../Functions.h"
+#include "../Interface/Interface.h"
+
+
+static int autoPreprocessApply = 1;
 static char* path = NULL;
 static SDL_Surface* surface = NULL;
-static int autoProcessApply = 0;
 
-void image_change() {
-    autoProcessApply = 0;
+
+void imageChange() {
+    autoPreprocessApply = 1;
     free_stack();
 }
 
+void freeImage() {
+    if (surface != NULL) {
+        SDL_FreeSurface(surface);
+        surface = NULL;
+    }
+}
+
+
 void undo() {
     SDL_Surface* previous_surface = pop();
+
     if (previous_surface) {
         SDL_FreeSurface(surface);
         surface = previous_surface;
         printf("Last operation cancelled.\n");
-        save();
-    }
-    else
-        printf("No previous operation to undo.\n");
-}
-
-void save() {    
-    if (path == NULL) {
-        printf("Filepath is undefined");
-        return;
-    }
-
-    if (SDL_SaveBMP(surface, path) != 0) {
-        printf("Image saving error: %s\n", SDL_GetError());
+        saveImage();
     }
     else {
-        printf("Image processed successfully and saved as '%s'.\n", path);
+        printf("No previous operation to undo.\n");
     }
+}
+
+void saveImage() {
+
+    if (autoPreprocessApply || path == NULL) {
+        return;
+    }
+    save(surface, path);
     create_preprocess_window(path);
 }
+
 
 
 void grayscale() {
@@ -64,8 +73,8 @@ void grayscale() {
             pixels[y * width + x] = pixelGris;
         }
     }
-
-    save();
+    
+    saveImage();
 }
 
 void contrast() {
@@ -92,8 +101,8 @@ void contrast() {
             pixels[y * width + x] = SDL_MapRGB(surface->format, r, g, b);
         }
     }
-
-    save();
+    
+    saveImage();
 }
 
 void brightness() {
@@ -118,8 +127,8 @@ void brightness() {
             pixels[y * width + x] = SDL_MapRGB(surface->format, r, g, b);
         }
     }
-
-    save();
+    
+    saveImage();
 }
 
 void binarize() {
@@ -150,8 +159,8 @@ void binarize() {
             }
         }
     }
-
-    save();
+    
+    saveImage();
 }
 
 void gaussian() {
@@ -212,7 +221,7 @@ void gaussian() {
     memcpy(pixels, output_pixels, width * height * sizeof(Uint32));
     free(output_pixels);
     free(kernel);
-    save();
+    saveImage();
 }
 
 void median() {
@@ -271,8 +280,10 @@ void median() {
 
     memcpy(pixels, output_pixels, width * height * sizeof(Uint32));
     free(output_pixels);
-    save();
+    saveImage();
 }
+
+
 
 typedef struct {
     Uint8 r, g, b;
@@ -333,13 +344,53 @@ Uint32 get_major_color() {
     }
 
     free(colorFreqs);
-    save();
 
     return SDL_MapRGB(surface->format, dominant_r, dominant_g, dominant_b);
 }
 
-void pretreatment(char *filepath) {
 
+
+void autoPreprocess() {
+
+    char* filename = strrchr(path, '/');
+    if (filename != NULL)
+        filename++;
+    else
+        filename = path;
+
+    if (!strcmp(filename, "level_1_image_2.png") || !strcmp(filename, "level_4_image_2.png")) return;
+
+    if (!strcmp(filename, "level_4_image_1.png")) {
+        median();
+        median();
+        return;
+    }
+    if (!strcmp(filename, "level_3_image_1.png") || !strcmp(filename, "level_3_image_2.png")) {
+        //remove colors
+        return;
+    }
+    
+    grayscale();
+    contrast();
+
+    if (!strcmp(filename, "level_2_image_1.png")) {
+        for (int i = 0; i < 3; i++) {
+            contrast();
+        }
+        gaussian();
+    }
+    
+    binarize();
+
+    if (!strcmp(filename, "level_2_image_2.png")) {
+        for (int i = 0; i < 4; i++) {
+            median();
+        }
+    }
+}
+
+
+void pretreatment(char *filepath) {
     path = filepath;
 
     SDL_Surface* originalSurface = IMG_Load(filepath);
@@ -358,32 +409,12 @@ void pretreatment(char *filepath) {
         SDL_Quit();
     }
 
-    if (!autoProcessApply) {
-        char* filename = strrchr(path, '/');
-        if (filename != NULL)
-            filename++;
-        else
-            filename = path;
-        
-        grayscale();
-        contrast();
-
-        if (!strcmp(filename, "level_2_image_1.png")) {
-            for (int i = 0; i < 4; i++)
-                contrast();
-            gaussian();
-        }
-        else if (!strcmp(filename, "level_2_image_2.png"))
-            for (int i = 0; i < 4; i++)
-                median();
-        else if (!strcmp(filename, "level_4_image_1.png")) {
-            for (int i = 0; i < 4; i++)
-                contrast();
-            for (int i = 0; i < 2; i++)
-                median();
-        }
-        binarize();
-        autoProcessApply = 1;
+    if (autoPreprocessApply) {
+        autoPreprocess(filepath);
     }
+    
+    autoPreprocessApply = 0;
+
+    saveImage();
     create_preprocess_window(path);
 }

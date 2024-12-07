@@ -4,6 +4,7 @@
 #include <gtk/gtk.h>
 #include <cairo.h>
 #include "rotate.h"
+#include "../Functions.h"
 
 
 static GdkPixbuf *original_pixbuf = NULL;
@@ -49,12 +50,7 @@ void rotate(char* filepath, double angle) {
     SDL_RenderCopyEx(renderer, texture, NULL, NULL, angle, NULL, SDL_FLIP_NONE);
     SDL_RenderReadPixels(renderer, NULL, surface->format->format, surface->pixels, surface->pitch);
 
-    if (IMG_SavePNG(surface, filepath) != 0) {
-        printf("Error saving image: %s\n", IMG_GetError());
-    }
-    else {
-        printf("The image was successfully rotated with an angle of %d° and saved as '%s'.\n", (int)angle, filepath);
-    }
+    save(surface, filepath);
 
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);

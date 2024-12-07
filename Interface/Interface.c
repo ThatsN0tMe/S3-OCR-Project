@@ -4,21 +4,27 @@
 #include <gtk/gtk.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-
 #include "Interface.h"
 #include "../afflelou.h"
+#include "../Detection/Detection.h"
 #include "../Pretreatment/pretreatment.h"
 
 #define presentationText "Bienvenue dans l'application d'analyse de grilles de mots !"
 
 
-void display_home() {
-    //Remove all widget in window
+void clear_window() {
+    
     GList *children = gtk_container_get_children(GTK_CONTAINER(window));
     for (GList *child = children; child != NULL; child = child->next) {
         gtk_widget_destroy(GTK_WIDGET(child->data));
     }
     g_list_free(children);
+}
+
+
+void display_home() {
+    clear_window();
+
     //Box
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0); //Create a box
     gtk_container_add(GTK_CONTAINER(window), box); //Add box to window
@@ -30,19 +36,14 @@ void display_home() {
     //Selected button
     GtkWidget *button_select = gtk_button_new_with_label("Select file"); //Create button
     g_signal_connect(button_select, "clicked", G_CALLBACK(select_file), NULL); //Action when button is clicked
-    gtk_box_pack_start(GTK_BOX(box), button_select, TRUE, TRUE, 0); //Add button to box
+    gtk_box_pack_start(GTK_BOX(box), button_select, TRUE, TRUE, 1); //Add button to box
 
     gtk_widget_show_all(window); //Show window
 }
 
 
 void display_image_options() {
-    //Remove all widget in window
-    GList *children = gtk_container_get_children(GTK_CONTAINER(window));
-    for (GList *child = children; child != NULL; child = child->next) {
-        gtk_widget_destroy(GTK_WIDGET(child->data));
-    }
-    g_list_free(children);
+    clear_window();
 
     //Box
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
@@ -67,66 +68,6 @@ void display_image_options() {
     GtkWidget *button_back = gtk_button_new_with_label("Back");
     g_signal_connect(button_back, "clicked", G_CALLBACK(display_home), window);
     gtk_box_pack_start(GTK_BOX(box), button_back, FALSE, FALSE, 0);
-
-    gtk_widget_show_all(window);
-}
-
-
-void create_preprocess_window(char *filepath) {
-    //Remove all widget in window
-    GList *children = gtk_container_get_children(GTK_CONTAINER(window));
-    for (GList *child = children; child != NULL; child = child->next) {
-        gtk_widget_destroy(GTK_WIDGET(child->data));
-    }
-    g_list_free(children);
-    
-    GdkPixbuf* original_pixbuf = gdk_pixbuf_new_from_file(filepath, NULL);
-    if (original_pixbuf == NULL) {
-        g_print("Error: Could not load image from file %s\n", filepath);
-        return;
-    }
-
-    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
-    gtk_container_add(GTK_CONTAINER(window), vbox);
-
-    GtkWidget *last_operation = gtk_button_new_with_label("Return to previous operation");
-    g_signal_connect(last_operation, "clicked", G_CALLBACK(undo), NULL);
-    gtk_box_pack_start(GTK_BOX(vbox), last_operation, FALSE, FALSE, 1);
-
-    GtkWidget *original_image = gtk_image_new_from_pixbuf(original_pixbuf);
-    gtk_box_pack_start(GTK_BOX(vbox), original_image, TRUE, TRUE, 0);
-
-    GtkWidget *hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-    gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 1);
-
-
-    GtkWidget *button_grayscale = gtk_button_new_with_label("Grayscale");
-    g_signal_connect(button_grayscale, "clicked", G_CALLBACK(grayscale), NULL);
-    gtk_box_pack_start(GTK_BOX(hbox), button_grayscale, TRUE, TRUE, 1);
-
-    GtkWidget *button_contrast = gtk_button_new_with_label("Contrast");
-    g_signal_connect(button_contrast, "clicked", G_CALLBACK(contrast), NULL);
-    gtk_box_pack_start(GTK_BOX(hbox), button_contrast, TRUE, TRUE, 1);
-
-    GtkWidget *button_binarize = gtk_button_new_with_label("Binarize");
-    g_signal_connect(button_binarize, "clicked", G_CALLBACK(binarize), NULL);
-    gtk_box_pack_start(GTK_BOX(hbox), button_binarize, TRUE, TRUE, 1);
-
-    GtkWidget *button_brightness = gtk_button_new_with_label("Brightness");
-    g_signal_connect(button_brightness, "clicked", G_CALLBACK(brightness), NULL);
-    gtk_box_pack_start(GTK_BOX(hbox), button_brightness, TRUE, TRUE, 1);
-
-    GtkWidget *button_gaussian = gtk_button_new_with_label("Gaussian");
-    g_signal_connect(button_gaussian, "clicked", G_CALLBACK(gaussian), NULL);
-    gtk_box_pack_start(GTK_BOX(hbox), button_gaussian, TRUE, TRUE, 1);
-
-    GtkWidget *button_median = gtk_button_new_with_label("Median");
-    g_signal_connect(button_median, "clicked", G_CALLBACK(median), NULL);
-    gtk_box_pack_start(GTK_BOX(hbox), button_median, TRUE, TRUE, 1);
-
-    GtkWidget *button_back = gtk_button_new_with_label("Back");
-    g_signal_connect(button_back, "clicked", G_CALLBACK(display_image_options), window);
-    gtk_box_pack_start(GTK_BOX(hbox), button_back, FALSE, FALSE, 0);
 
     gtk_widget_show_all(window);
 }
@@ -162,14 +103,13 @@ void select_file(GtkWidget *button, gpointer user_data) {
         filepath = getDestPath(sourcepath);
         
         if (filepath == NULL || cloneFile(sourcepath, filepath) == -1) {
-            puts("\n\n\n\n\n\ncaca\n\n\n\n\n");
+            puts("Error with getting modified file");
             return;
         }
 
         display_image_options();
+        imageChange();
         gtk_button_set_label(GTK_BUTTON(button), "File open !");
-
-        image_change();
     }
 
     gtk_widget_destroy(dialog);
@@ -177,64 +117,109 @@ void select_file(GtkWidget *button, gpointer user_data) {
 
 
 
-//Creer un nouveau path dans le directory /Modified pour pas changer le fichier originel
-char* getDestPath(const char* sourcepath) {
+void close_preprocess_window() {
+    freeImage();
+    display_image_options();
+}
 
-    if (sourcepath == NULL) return NULL;
-
-    char* res = NULL;
-    const char* dir = "/Modified";
-    int index = 0, startIndex = 0, endIndex = 0;
-
-    while (sourcepath[index] != 0) {
-        if (sourcepath[index] == '/') {
-            endIndex = index;
-        }
-        index++;
-    }
-    startIndex = endIndex - 1;
-
-    const char* fileNameWithExt = sourcepath + endIndex + 1;
-    const char* dot = strrchr(fileNameWithExt, '.');
-    int fileNameLength = (dot != NULL) ? (size_t)(dot - fileNameWithExt) : strlen(fileNameWithExt);
-
-    while (startIndex >= 0 && sourcepath[startIndex] != '/'){
-        startIndex--;
-    }
-
-    res = calloc(startIndex + index - endIndex + fileNameLength + strlen(dir) + strlen(fileNameWithExt) + 2, 1);
-
-    if (startIndex > 0) {
-        memcpy(res, sourcepath, startIndex);
-    }
-    memcpy(res + startIndex, dir, strlen(dir));
-    memcpy(res + startIndex + strlen(dir), "/", 1);
-    memcpy(res + startIndex + strlen(dir) + 1, fileNameWithExt, fileNameLength);
-    memcpy(res + startIndex + strlen(dir) + 1 + fileNameLength, "/", 1);
-    memcpy(res + startIndex + strlen(dir) + 1 + fileNameLength + 1, fileNameWithExt, strlen(fileNameWithExt));
+void create_preprocess_window(char *filepath) {
+    clear_window();
     
-    return res;
+    GdkPixbuf* original_pixbuf = gdk_pixbuf_new_from_file(filepath, NULL);
+    if (original_pixbuf == NULL) {
+        g_print("Error: Could not load image from file %s\n", filepath);
+        return;
+    }
+
+    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
+    gtk_container_add(GTK_CONTAINER(window), vbox);
+
+    GtkWidget *original_image = gtk_image_new_from_pixbuf(original_pixbuf);
+    gtk_box_pack_start(GTK_BOX(vbox), original_image, TRUE, TRUE, 0);
+
+    GtkWidget *hbox1 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), hbox1, FALSE, FALSE, 1);
+
+    GtkWidget *hbox2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), hbox2, FALSE, FALSE, 1);
+
+
+    GtkWidget *last_operation = gtk_button_new_with_label("Return to previous operation");
+    g_signal_connect(last_operation, "clicked", G_CALLBACK(undo), NULL);
+    gtk_box_pack_start(GTK_BOX(hbox2), last_operation, TRUE, TRUE, 1);
+
+    GtkWidget *button_back = gtk_button_new_with_label("Back");
+    g_signal_connect(button_back, "clicked", G_CALLBACK(close_preprocess_window), window);
+    gtk_box_pack_start(GTK_BOX(hbox2), button_back, FALSE, FALSE, 1);
+
+
+    GtkWidget *button_grayscale = gtk_button_new_with_label("Grayscale");
+    g_signal_connect(button_grayscale, "clicked", G_CALLBACK(grayscale), NULL);
+    gtk_box_pack_start(GTK_BOX(hbox1), button_grayscale, TRUE, TRUE, 1);
+
+    GtkWidget *button_contrast = gtk_button_new_with_label("Contrast");
+    g_signal_connect(button_contrast, "clicked", G_CALLBACK(contrast), NULL);
+    gtk_box_pack_start(GTK_BOX(hbox1), button_contrast, TRUE, TRUE, 1);
+
+    GtkWidget *button_binarize = gtk_button_new_with_label("Binarize");
+    g_signal_connect(button_binarize, "clicked", G_CALLBACK(binarize), NULL);
+    gtk_box_pack_start(GTK_BOX(hbox1), button_binarize, TRUE, TRUE, 1);
+
+    GtkWidget *button_brightness = gtk_button_new_with_label("Brightness");
+    g_signal_connect(button_brightness, "clicked", G_CALLBACK(brightness), NULL);
+    gtk_box_pack_start(GTK_BOX(hbox1), button_brightness, TRUE, TRUE, 1);
+
+    GtkWidget *button_gaussian = gtk_button_new_with_label("Gaussian");
+    g_signal_connect(button_gaussian, "clicked", G_CALLBACK(gaussian), NULL);
+    gtk_box_pack_start(GTK_BOX(hbox1), button_gaussian, TRUE, TRUE, 1);
+
+    GtkWidget *button_median = gtk_button_new_with_label("Median");
+    g_signal_connect(button_median, "clicked", G_CALLBACK(median), NULL);
+    gtk_box_pack_start(GTK_BOX(hbox1), button_median, TRUE, TRUE, 1);
+
+    gtk_widget_show_all(window);
 }
 
 
-int cloneFile(const char *src_path, const char *dest_path) {
-    FILE *src = fopen(src_path, "rb");
-    FILE *dest = fopen(dest_path, "wb");
+void close_detection_window() {
+    freeSurface();
+    display_image_options();
+}
 
-    if (src == NULL || dest == NULL) {
-        if (src) fclose(src);
-        if (dest) fclose(dest);
-        return -1;
+void create_detection_window(char* filepath) {
+    clear_window();
+    
+    GdkPixbuf* original_pixbuf = gdk_pixbuf_new_from_file(filepath, NULL);
+    if (original_pixbuf == NULL) {
+        g_print("Error: Could not load image from file %s\n", filepath);
+        return;
     }
 
-    size_t bytes;
-    char buffer[4096];
+    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
+    gtk_container_add(GTK_CONTAINER(window), vbox);
 
-    while ((bytes = fread(buffer, 1, sizeof(buffer), src)) > 0) {
-        fwrite(buffer, 1, bytes, dest);
-    }
+    GtkWidget *original_image = gtk_image_new_from_pixbuf(original_pixbuf);
+    gtk_box_pack_start(GTK_BOX(vbox), original_image, TRUE, TRUE, 0);
 
-    fclose(src);
-    fclose(dest);
-    return 0;
+    GtkWidget *hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 1);
+
+
+    GtkWidget *button_grid = gtk_button_new_with_label("Grid");
+    g_signal_connect(button_grid, "clicked", G_CALLBACK(gridDetection), NULL);
+    gtk_box_pack_start(GTK_BOX(hbox), button_grid, TRUE, TRUE, 1);
+
+    GtkWidget *button_letters = gtk_button_new_with_label("Letters");
+    g_signal_connect(button_letters, "clicked", G_CALLBACK(letterDetection), NULL);
+    gtk_box_pack_start(GTK_BOX(hbox), button_letters, TRUE, TRUE, 1);
+
+    GtkWidget *button_words = gtk_button_new_with_label("Words");
+    g_signal_connect(button_words, "clicked", G_CALLBACK(wordDetection), NULL);
+    gtk_box_pack_start(GTK_BOX(hbox), button_words, TRUE, TRUE, 1);
+
+    GtkWidget *button_back = gtk_button_new_with_label("Back");
+    g_signal_connect(button_back, "clicked", G_CALLBACK(close_detection_window), window);
+    gtk_box_pack_start(GTK_BOX(hbox), button_back, FALSE, FALSE, 1);
+    
+    gtk_widget_show_all(window);
 }

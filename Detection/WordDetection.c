@@ -105,18 +105,17 @@ void detectWords(SDL_Surface* surface, char* filepath) {
 
 
 	for (int i = 0; i < numWords; i++) {
-
 		if (words[i] == NULL) break;
 
 		int j = 0;
 		while (words[i][j] != NULL) {
 
 			int* coords = words[i][j];
+
 			drawLineOnSurface(surface, coords[0], coords[1], coords[2], coords[1]);
             drawLineOnSurface(surface, coords[2], coords[1], coords[2], coords[3]);
             drawLineOnSurface(surface, coords[0], coords[1], coords[0], coords[3]);
             drawLineOnSurface(surface, coords[0], coords[3], coords[2], coords[3]);
-			j++;
 
             // Couper et sauvegarder chaque mot
             char* dir = strdup(filepath);
@@ -128,6 +127,7 @@ void detectWords(SDL_Surface* surface, char* filepath) {
             cut_and_save(filepath, output_file, coords[0], coords[1], coords[2], coords[3]);
 
             free(dir);
+			j++;
 		}
 	}
 

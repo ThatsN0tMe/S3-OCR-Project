@@ -17,7 +17,6 @@ GtkWidget *window = NULL;
 
 void applyPreprocess() {
     pretreatment(filepath);
-    create_preprocess_window(filepath);
 }
 
 void doRotation() {

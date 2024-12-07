@@ -2,12 +2,77 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+
 #include "Detection.h"
+#include "../Functions.h"
 #include "../Rotate/rotate.h"
+#include "../Interface/Interface.h"
 
 
 static int x1 = 0, yy1 = 0, x2 = 0, y2 = 0;
+static char* path = NULL;
 static SDL_Surface* surface = NULL;
+
+
+void freeSurface() {
+    if (surface != NULL) {
+        SDL_FreeSurface(surface);
+        surface = NULL;
+    }
+}
+
+void saveSurface() {
+    if (path == NULL || surface == NULL) {
+        puts("Cannot save image");
+        return;
+    }
+
+    save(surface, path);
+    create_detection_window(path);
+}
+
+
+void gridDetection() {
+    autoRotate(path, 1);
+    surface = IMG_Load(path);
+
+    int* coords = detectGrid(surface);
+    x1 = coords[0];
+    yy1 = coords[1];
+    x2 = coords[2];
+    y2 = coords[3];
+
+    /*drawLineOnSurface(surface, x1, yy1, x2, yy1);
+    drawLineOnSurface(surface, x2, yy1, x2, y2);
+    drawLineOnSurface(surface, x1, yy1, x1, y2);
+    drawLineOnSurface(surface, x1, y2, x2, y2);*/
+
+    free(coords);
+    saveSurface();
+}
+
+void letterDetection() {
+    if (x1 == x2 || yy1 == y2) {
+        puts("Cannot detect letters, grid was not correctly detected");
+        return;
+    }
+    detectLetters(surface, path, x1, x2, yy1, y2);
+    saveSurface();
+}
+
+void wordDetection() {
+    if (x1 == x2 || yy1 == y2) {
+        puts("Cannot detect words, grid was not correctly detected");
+        return;
+    }
+
+    SDL_Rect rect = {x1, yy1, x2 - x1, y2 - yy1};
+    Uint32 color = SDL_MapRGB(surface->format, 255, 255, 255);
+    SDL_FillRect(surface, &rect, color);
+
+    detectWords(surface, path);
+    saveSurface();
+}
 
 
 void detection(char* filepath) {
@@ -16,7 +81,7 @@ void detection(char* filepath) {
         puts("Filepath is undefined");
         return;
     }
-    autoRotate(filepath, 1);
+    path = filepath;
 
     surface = IMG_Load(filepath);
     if (surface == NULL) {
@@ -24,32 +89,5 @@ void detection(char* filepath) {
         return;
     }
 
-    int* coords = detectGrid(surface);
-    x1 = coords[0];
-    yy1 = coords[1];
-    x2 = coords[2];
-    y2 = coords[3];
-    free(coords);
-
-    detectLetters(surface, filepath, x1, x2, yy1, y2);
-
-
-    //Detection des mots !!! Ne marchent que pour les images 1 1, 1 2 et 2 2 !!! Sinon y a des erreures bizarres
-/*
-    SDL_Rect rect = {x1, yy1, x2 - x1, y2 - yy1};
-    Uint32 color = SDL_MapRGB(surface->format, 255, 255, 255);
-    SDL_FillRect(surface, &rect, color);
-
-    detectWords(surface, filepath);
-*/
-    //Fin detection des mots
-
-    if (SDL_SaveBMP(surface, filepath) != 0) {
-        printf("Image saving error: %s\n", SDL_GetError());
-    }
-    else {
-        printf("Image processed successfully and saved as '%s'.\n", filepath);
-    }
-
-    SDL_FreeSurface(surface);
+    create_detection_window(filepath);
 }

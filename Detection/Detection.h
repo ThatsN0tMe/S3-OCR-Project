@@ -1,8 +1,6 @@
 #ifndef DETECTION_H_
 #define DETECTION_H_
 
-#include <SDL2/SDL.h>
-
 double** getBrightness(SDL_Surface* surface);
 int** detectEdges(SDL_Surface* surface);
 
@@ -25,12 +23,18 @@ void drawPolarLine(SDL_Surface* surface, double rho, double theta, int w, int h)
 void drawLineOnSurface(SDL_Surface *surface, int x1, int y1, int x2, int y2);
 void putPixel(SDL_Surface *surface, int x, int y);
 
-void detection(char* filepath);
 int* detectGrid(SDL_Surface* surface);
 void detectWords(SDL_Surface* surface, char* filepath);
 int** detectLines(SDL_Surface* surface, int* size, int* threshold);
 void detectLetters(SDL_Surface* surface, char* filepath, int x1, int x2, int y1, int y2);
 
+void saveSurface();
+void freeSurface();
 void cut_and_save(char* input_file, char* output_file, int x1, int y1, int x2, int y2);
+
+void detection(char* filepath);
+void gridDetection();
+void letterDetection();
+void wordDetection();
 
 #endif
