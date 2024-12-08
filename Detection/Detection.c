@@ -113,8 +113,19 @@ void print_result() {
     if (source_path == NULL)
         return;
 
-    find_word(&source_path, grid, letterCoords, 14, 12, "pwlrl");
-    find_word(&source_path, grid, letterCoords, 14, 12, "pace");
+    find_word(&source_path, grid, letterCoords, 14, 12, "apple");
+    find_word(&source_path, grid, letterCoords, 14, 12, "lemon");
+    find_word(&source_path, grid, letterCoords, 14, 12, "banana");
+    find_word(&source_path, grid, letterCoords, 14, 12, "lime");
+    find_word(&source_path, grid, letterCoords, 14, 12, "orange");
+    find_word(&source_path, grid, letterCoords, 14, 12, "watermelon");
+    find_word(&source_path, grid, letterCoords, 14, 12, "grape");
+    find_word(&source_path, grid, letterCoords, 14, 12, "kiwi");
+    find_word(&source_path, grid, letterCoords, 14, 12, "strawberry");
+    find_word(&source_path, grid, letterCoords, 14, 12, "blackberry");
+    find_word(&source_path, grid, letterCoords, 14, 12, "papaya");
+    find_word(&source_path, grid, letterCoords, 14, 12, "blueberry");
+    find_word(&source_path, grid, letterCoords, 14, 12, "raspberry");
 
     create_detection_window(path);
 

@@ -8,8 +8,6 @@
 
 #include "../Interface/Interface.h"
 
-#define MARGIN 0
-
 char** read_file(char* filepath, int* lines, int* columns) { //Reads from a file and copies it to a variable
     FILE* file = fopen(filepath, "r"); //Read file
     if (file == NULL)
@@ -116,17 +114,24 @@ int find_word(char** filepath, char** grid, int*** coordinates, int lines, int c
                         int x1 = x + (strlen(word) - 1) * dx;
                         int y1 = y + (strlen(word) - 1) * dy;
 
-                        if (d == 2 || d == 5 || d == 4 || d== 7)
+                        if (d == 2 || d == 5 || d == 6 || d== 7)
                             draw_line(image,
-                            coordinates[y][x][0] + MARGIN,
-                            coordinates[y][x][1] + MARGIN,
+                            coordinates[y][x][0],
+                            coordinates[y][x][1],
                             coordinates[y1][x1][2],
                             coordinates[y1][x1][3],
                             red_color);
+                        else if (d == 3 || d == 4)
+                            draw_rect(image,
+                            coordinates[y1][x1][0],
+                            coordinates[y1][x1][1],
+                            coordinates[y][x][2],
+                            coordinates[y][x][3],
+                            red_color);
                         else
                             draw_rect(image,
-                            coordinates[y][x][0] + MARGIN,
-                            coordinates[y][x][1] + MARGIN,
+                            coordinates[y][x][0],
+                            coordinates[y][x][1],
                             coordinates[y1][x1][2],
                             coordinates[y1][x1][3],
                             red_color);
@@ -136,6 +141,9 @@ int find_word(char** filepath, char** grid, int*** coordinates, int lines, int c
                         IMG_SavePNG(image, save_path);
                         *filepath = save_path;
                         SDL_FreeSurface(image);
+
+                        printf("The word \"%s\" was found at the coordinates: (%i, %i)(%i, %i)\n", word, x, y, dx, dy);
+
                         return 1;
                     }
                 }
