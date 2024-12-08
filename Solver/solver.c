@@ -142,7 +142,7 @@ int find_word(char** filepath, char** grid, int*** coordinates, int lines, int c
                         *filepath = save_path;
                         SDL_FreeSurface(image);
 
-                        printf("The word \"%s\" was found at the coordinates: (%i, %i)(%i, %i)\n", word, x, y, dx, dy);
+                        printf("The word \"%s\" was found at the coordinates: (%i, %i)(%i, %i)\n", word, x, y, x1, y1);
 
                         return 1;
                     }
