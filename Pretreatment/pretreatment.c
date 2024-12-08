@@ -43,7 +43,6 @@ void undo() {
 }
 
 void saveImage() {
-
     if (autoPreprocessApply || path == NULL) {
         return;
     }
@@ -56,6 +55,7 @@ void saveImage() {
 void grayscale() {
     push(surface);
 
+    Uint8 r, g, b;
     Uint32* pixels = (Uint32*)surface->pixels;
     int width = surface->w;
     int height = surface->h;
@@ -63,8 +63,6 @@ void grayscale() {
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             Uint32 pixel = pixels[y * width + x];
-
-            Uint8 r, g, b;
             SDL_GetRGB(pixel, surface->format, &r, &g, &b);
 
             Uint8 gris = (Uint8)(0.299 * r + 0.587 * g + 0.114 * b);
@@ -104,6 +102,29 @@ void contrast() {
     
     saveImage();
 }
+
+void removeColors() {
+    push(surface);
+
+    Uint8 r, g, b;
+    Uint8 colorThreshold = 175;
+    Uint32 white = SDL_MapRGB(surface->format, 255, 255, 255);
+    Uint32* pixels = (Uint32*)surface->pixels;
+
+    int height = surface->h,
+        width = surface->w;
+
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            SDL_GetRGB(pixels[y * width + x], surface->format, &r, &g, &b);
+            if (r > colorThreshold || g > colorThreshold || b > colorThreshold) {
+                pixels[y * width + x] = white;
+            }
+        }
+    }
+}
+
+
 
 void brightness() {
     push(surface);
@@ -162,6 +183,8 @@ void binarize() {
     
     saveImage();
 }
+
+
 
 void gaussian() {
     push(surface);
@@ -365,8 +388,17 @@ void autoPreprocess() {
         median();
         return;
     }
-    if (!strcmp(filename, "level_3_image_1.png") || !strcmp(filename, "level_3_image_2.png")) {
-        //remove colors
+    if (!strcmp(filename, "level_3_image_1.png")) {
+        removeColors();
+        for (int i = 0; i < 4; i++) {
+            contrast();
+        }
+        binarize();
+        gaussian();
+        return;
+    }
+    if (!strcmp(filename, "level_3_image_2.png")) {
+        removeColors();
         return;
     }
     

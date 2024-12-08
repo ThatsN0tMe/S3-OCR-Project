@@ -45,13 +45,17 @@ void gridDetection() {
     yy1 = coords[1];
     x2 = coords[2];
     y2 = coords[3];
+    free(coords);
+
+    if (x1 != x2 && yy1 != y2) {
+        printf("Grid was successfully detected at coordinates : %d, %d  |  %d, %d\n", x1, yy1, x2, y2);
+    }
 
     /*drawLineOnSurface(surface, x1, yy1, x2, yy1);
     drawLineOnSurface(surface, x2, yy1, x2, y2);
     drawLineOnSurface(surface, x1, yy1, x1, y2);
     drawLineOnSurface(surface, x1, y2, x2, y2);*/
-
-    free(coords);
+    
     saveSurface();
 }
 
