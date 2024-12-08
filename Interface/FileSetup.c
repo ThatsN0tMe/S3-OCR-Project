@@ -6,11 +6,18 @@
 #include "Interface.h"
 #include "../Pretreatment/pretreatment.h"
 
+char* source_path = NULL;
 
 //Creer un nouveau path dans le directory /Modified pour pas changer le fichier originel
 char* getDestPath(const char* sourcepath) {
 
     if (sourcepath == NULL) return NULL;
+
+    if (strstr(sourcepath, "/Modified") != NULL)
+        return strdup(sourcepath);
+
+    source_path = malloc(strlen(sourcepath) + 1);
+    strcpy(source_path, sourcepath);
 
     char* res = NULL;
     const char* dir = "/Modified";
@@ -44,6 +51,14 @@ char* getDestPath(const char* sourcepath) {
     memcpy(res + startIndex + strlen(dir) + 1 + fileNameLength + 1, fileNameWithExt, strlen(fileNameWithExt));
     
     return res;
+}
+
+char* getSourcePath() {
+    if (source_path == NULL) {
+        puts("Cannot access source image.");
+        return NULL;
+    }
+    return source_path;
 }
 
 

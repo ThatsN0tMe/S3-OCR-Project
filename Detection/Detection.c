@@ -7,12 +7,15 @@
 #include "../Functions.h"
 #include "../Rotate/rotate.h"
 #include "../Interface/Interface.h"
+#include "../Solver/solver.h"
 
 
 static int x1 = 0, yy1 = 0, x2 = 0, y2 = 0;
 static char* path = NULL;
 static SDL_Surface* surface = NULL;
 
+int*** letterCoords = NULL;
+int lines, columns;
 
 void freeSurface() {
     if (surface != NULL) {
@@ -64,7 +67,7 @@ void letterDetection() {
         puts("Cannot detect letters, grid was not correctly detected before.");
         return;
     }
-    detectLetters(surface, path, x1, x2, yy1, y2);
+    letterCoords = detectLetters(surface, path, x1, x2, yy1, y2, &lines, &columns);
     saveSurface();
 }
 
@@ -80,6 +83,48 @@ void wordDetection() {
 
     detectWords(surface, path);
     saveSurface();
+}
+
+void print_result() {
+    if (letterCoords == NULL || x1 == x2 || yy1 == y2) {
+        puts("Cannot print the result the previous steps were not performed.");
+        return;
+    }
+
+    char* grid[] = {
+        "MSWATERMELON",
+        "YTBNEPEWRMAE",
+        "RRLWPAPAYANA",
+        "RANLEMONANEP",
+        "EWLEAPRIABPR",
+        "BBILBBWBRLAY",
+        "KEMPMAWLRARB",
+        "CREPRNRERRGR",
+        "ARYAYAOANLAM",
+        "LYYARNERKIWI",
+        "BEBAAANAAPRT",
+        "YRREBPSARNNW",
+        "YRREBEULBLGI",
+        "TYPATEAEPACE"
+    };
+
+    char* source_path = getSourcePath();
+
+    if (source_path == NULL)
+        return;
+
+    find_word(&source_path, grid, letterCoords, 14, 12, "pwlrl");
+    find_word(&source_path, grid, letterCoords, 14, 12, "pace");
+
+    create_detection_window(path);
+
+    for (int i = 0; i < lines; i++) {
+        for (int j = 0; j < columns; j++) {
+            free(letterCoords[i][j]);
+        }
+        free(letterCoords[i]);
+    }
+    free(letterCoords);
 }
 
 

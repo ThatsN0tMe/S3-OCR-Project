@@ -154,23 +154,23 @@ void removeLines(SDL_Surface* surface, int x1, int x2, int y1, int y2) {
 
 
 
-void detectLetters(SDL_Surface* surface, char* filepath, int x1, int x2, int y1, int y2) {
+int*** detectLetters(SDL_Surface* surface, char* filepath, int x1, int x2, int y1, int y2, int* lines, int* columns) {
 
     //Nombre de lignes et de colonnes de lettres
-    int lines = getNumLines(surface, x1, x2, &y1, y2),
-        columns = getNumColumns(surface, x1, x2, y1, y2);
+    *lines = getNumLines(surface, x1, x2, &y1, y2);
+    *columns = getNumColumns(surface, x1, x2, y1, y2);
 
-    if (lines + columns < 10) {
+    if (*lines + *columns < 10) {
         removeLines(surface, x1, x2, y1, y2);
-        lines = getNumLines(surface, x1, x2, &y1, y2);
-        columns = getNumColumns(surface, x1, x2, y1, y2);
+        *lines = getNumLines(surface, x1, x2, &y1, y2);
+        *columns = getNumColumns(surface, x1, x2, y1, y2);
     }
 
     //Liste 3 dimensionnelle dont la 3eme represente les corners topleft et bottomright de la lettre : x1, y1 | x2, y2
-    int*** letterCoords = calloc(sizeof(int*), lines);
-    for (int i = 0; i < lines; i++) {
-        letterCoords[i] = calloc(sizeof(int*), columns);
-        for (int j = 0; j < columns; j++) {
+    int*** letterCoords = calloc(sizeof(int*), *lines);
+    for (int i = 0; i < *lines; i++) {
+        letterCoords[i] = calloc(sizeof(int*), *columns);
+        for (int j = 0; j < *columns; j++) {
             letterCoords[i][j] = calloc(sizeof(int), 4);
         }
     }
@@ -187,7 +187,7 @@ void detectLetters(SDL_Surface* surface, char* filepath, int x1, int x2, int y1,
         if (!isWhiteLine(surface, x1 + pixelToleranceX, y, x2 - pixelToleranceX, y)) {
             if (nextTopLine) {
 
-                for (int i = 0; i < columns; i++) {
+                for (int i = 0; i < *columns; i++) {
                     letterCoords[lineCounter][i][1] = y - 1;
                 }
                 nextTopLine = 0;
@@ -195,7 +195,7 @@ void detectLetters(SDL_Surface* surface, char* filepath, int x1, int x2, int y1,
         }
         else if (!nextTopLine) {
 
-            for (int i = 0; i < columns; i++) {
+            for (int i = 0; i < *columns; i++) {
                 letterCoords[lineCounter][i][3] = y;
             }
             nextTopLine = 1;
@@ -214,7 +214,7 @@ void detectLetters(SDL_Surface* surface, char* filepath, int x1, int x2, int y1,
         if (!isWhiteLine(surface, x, y1 + pixelToleranceY, x, y2 - pixelToleranceY)) {
             if (nextLeftColumn) {
 
-                for (int i = 0; i < lines; i++) {
+                for (int i = 0; i < *lines; i++) {
                     letterCoords[i][columnCounter][0] = x - 1;
                 }
                 nextLeftColumn = 0;
@@ -222,7 +222,7 @@ void detectLetters(SDL_Surface* surface, char* filepath, int x1, int x2, int y1,
         }
         else if (!nextLeftColumn) {
 
-            for (int i = 0; i < lines; i++) {
+            for (int i = 0; i < *lines; i++) {
                 letterCoords[i][columnCounter][2] = x;
             }
             nextLeftColumn = 1;
@@ -233,8 +233,8 @@ void detectLetters(SDL_Surface* surface, char* filepath, int x1, int x2, int y1,
     // -----------------------------------------------------------------------
 
 
-    for (int i = 0; i < lines; i++) {
-        for (int j = 0; j < columns; j++) {
+    for (int i = 0; i < *lines; i++) {
+        for (int j = 0; j < *columns; j++) {
 
             int* coords = letterCoords[i][j];
 
@@ -256,34 +256,5 @@ void detectLetters(SDL_Surface* surface, char* filepath, int x1, int x2, int y1,
         }
     }
 
-    for (int i = 0; i < lines; i++) {
-        for (int j = 0; j < columns; j++) {
-            free(letterCoords[i][j]);
-        }
-        free(letterCoords[i]);
-    }
-    free(letterCoords);
-
-
-    // TEST ARNAUD EFFACE PAS STP BEBOU C POUR TRACER SUR L'IMAGE FINAL
-/*
-    char* grid[] = {
-        "MSWATERMELON",
-        "YTBNEPEWRMAE",
-        "RRLWPAPAYANA",
-        "RANLEMONANEP",
-        "EWLEAPRIABPR",
-        "BBILBBWBRLAY",
-        "KEMPMAWLRARB",
-        "CREPRNRERRGR",
-        "ARYAYAOANLAM",
-        "LYYARNERKIWI",
-        "BEBAAANAAPRT",
-        "YRREBPSARNNW",
-        "YRREBEULBLGI",
-        "TYPATEAEPAGE"
-    };
-
-    find_word("/home/corentin/Documents/S3-OCR-Project/Grids/Source/level_1_image_1.png", grid, letterCoords, 14, 12, "pwlrl");
-*/
+    return letterCoords;
 }

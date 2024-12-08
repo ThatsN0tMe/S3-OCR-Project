@@ -217,6 +217,10 @@ void create_detection_window(char* filepath) {
     g_signal_connect(button_words, "clicked", G_CALLBACK(wordDetection), NULL);
     gtk_box_pack_start(GTK_BOX(hbox), button_words, TRUE, TRUE, 1);
 
+    GtkWidget *button_result = gtk_button_new_with_label("Print final result");
+    g_signal_connect(button_result, "clicked", G_CALLBACK(print_result), NULL);
+    gtk_box_pack_start(GTK_BOX(hbox), button_result, TRUE, TRUE, 1);
+
     GtkWidget *button_back = gtk_button_new_with_label("Back");
     g_signal_connect(button_back, "clicked", G_CALLBACK(close_detection_window), window);
     gtk_box_pack_start(GTK_BOX(hbox), button_back, FALSE, FALSE, 1);

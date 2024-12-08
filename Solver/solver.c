@@ -6,7 +6,9 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-#define MARGIN 20
+#include "../Interface/Interface.h"
+
+#define MARGIN 0
 
 char** read_file(char* filepath, int* lines, int* columns) { //Reads from a file and copies it to a variable
     FILE* file = fopen(filepath, "r"); //Read file
@@ -83,7 +85,7 @@ void draw_rect(SDL_Surface* image, int x0, int y0, int x1, int y1, Uint32 color)
     draw_line(image, x0, y1, x0, y0, color);
 }
 
-int find_word(char* filepath, char** grid, int*** coordinates, int lines, int columns, char* word) {
+int find_word(char** filepath, char** grid, int*** coordinates, int lines, int columns, char* word) {
     int directions[8][2] = {
         {1, 0},   // Right
         {0, 1},   // Down
@@ -95,7 +97,7 @@ int find_word(char* filepath, char** grid, int*** coordinates, int lines, int co
         {1, -1}   // Diagonal top right
     };
 
-    SDL_Surface* image = IMG_Load(filepath);
+    SDL_Surface* image = IMG_Load(*filepath);
     if (!image) {
         printf("Error loading image: %s\n", IMG_GetError());
         return 0;
@@ -129,7 +131,10 @@ int find_word(char* filepath, char** grid, int*** coordinates, int lines, int co
                             coordinates[y1][x1][3],
                             red_color);
 
-                        IMG_SavePNG(image, "/home/corentin/Documents/S3-OCR-Project/Grids/Modified/prout.png");
+                        char* save_path = getDestPath(*filepath);
+
+                        IMG_SavePNG(image, save_path);
+                        *filepath = save_path;
                         SDL_FreeSurface(image);
                         return 1;
                     }
