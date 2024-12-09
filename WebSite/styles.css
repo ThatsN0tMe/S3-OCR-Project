@@ -1,0 +1,143 @@
+/* Reset */
+body, h1, h2, p, ul, li, form, input, textarea, button {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body style */
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f4f4f4;
+}
+
+/* Header */
+.header {
+    background-color: #0056b3;
+    color: white;
+    text-align: center;
+    padding: 2rem 0;
+}
+
+.header h1 {
+    font-size: 3rem;
+}
+
+.header p {
+    font-size: 1.2rem;
+}
+
+/* Navbar */
+.navbar {
+    background-color: #003d80;
+    color: white;
+    text-align: center;
+    padding: 0.5rem 0;
+}
+
+.navbar ul {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+}
+
+.navbar a:hover {
+    text-decoration: underline;
+}
+
+/* Sections */
+.section {
+    padding: 2rem 0;
+    background: white;
+    margin: 1rem 0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+h2 {
+    color: #0056b3;
+    margin-bottom: 1rem;
+}
+
+/* Project demo */
+.project-demo {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.project-demo img {
+    max-width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.project-demo button {
+    background-color: #0056b3;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.project-demo button:hover {
+    background-color: #003d80;
+}
+
+/* Contact form */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+form label {
+    font-weight: bold;
+}
+
+form input, form textarea, form button {
+    padding: 0.8rem;
+    font-size: 1rem;
+}
+
+form input, form textarea {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+form button {
+    background-color: #0056b3;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+form button:hover {
+    background-color: #003d80;
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    background-color: #003d80;
+    color: white;
+    padding: 1rem 0;
+    margin-top: 2rem;
+}
+
