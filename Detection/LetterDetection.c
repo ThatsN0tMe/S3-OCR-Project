@@ -149,7 +149,12 @@ void removeLines(SDL_Surface* surface, int x1, int x2, int y1, int y2) {
                 }
             }
         }
-    }    
+    }
+    
+    for (int rho = 0; rho < size * 2; rho++) {
+        free(accumulatorArray[rho]);
+    }
+    free(accumulatorArray);
 }
 
 

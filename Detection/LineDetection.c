@@ -90,7 +90,9 @@ int** detectLines(SDL_Surface* surface, int* size, int* threshold) {
                 }
             }
         }
+        free(matrix[y]);
     }
+    free(matrix);
 
     return accumulatorArray;
 }
