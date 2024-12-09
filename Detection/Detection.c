@@ -171,8 +171,10 @@ void print_result() {
             free(letterCoords[i][j]);
         }
         free(letterCoords[i]);
+        free(grid[i]);
     }
     free(letterCoords);
+    free(grid);
 
     for (int i = 0; i < numWords; i++) {
 		int j = 0;
