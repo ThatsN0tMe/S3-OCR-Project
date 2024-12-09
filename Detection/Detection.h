@@ -24,7 +24,7 @@ void drawLineOnSurface(SDL_Surface *surface, int x1, int y1, int x2, int y2);
 void putPixel(SDL_Surface *surface, int x, int y);
 
 int* detectGrid(SDL_Surface* surface);
-void detectWords(SDL_Surface* surface, char* filepath);
+int*** detectWords(SDL_Surface* surface, char* filepath, int* numWords);
 int** detectLines(SDL_Surface* surface, int* size, int* threshold);
 int*** detectLetters(SDL_Surface* surface, char* filepath, int x1, int x2, int y1, int y2, int* lines, int* columns);
 

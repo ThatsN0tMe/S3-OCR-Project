@@ -44,14 +44,14 @@ int getNumLetters(SDL_Surface* surface, int y1, int y2) {
 }
 
 
-void detectWords(SDL_Surface* surface, char* filepath) {
+int*** detectWords(SDL_Surface* surface, char* filepath, int* numWords) {
 
     int width = surface->w,
-        height = surface->h,
-        numWords = getNumWords(surface);
+        height = surface->h;
+    *numWords = getNumWords(surface);
     
     //List 3d coords des lettres des mots : coords[mots][lettre][point], avec point 4 valeures : corner topleft et bottomright -> x1, y1 | x2, y2
-    int*** words = malloc(sizeof(int*) * numWords);
+    int*** words = malloc(sizeof(int*) * *numWords);
 
     int nextTopLine = 1,
         wordCounter = 0,
@@ -99,12 +99,12 @@ void detectWords(SDL_Surface* surface, char* filepath) {
             nextTopLine = 1;
             wordCounter++;
 
-			if (wordCounter >= numWords) break;
+			if (wordCounter >= *numWords) break;
         }
     }
 
 
-	for (int i = 0; i < numWords; i++) {
+	for (int i = 0; i < *numWords; i++) {
 		if (words[i] == NULL) break;
 
 		int j = 0;
@@ -131,14 +131,5 @@ void detectWords(SDL_Surface* surface, char* filepath) {
 		}
 	}
 
-
-	for (int i = 0; i < numWords; i++) {
-		int j = 0;
-		do {
-			free(words[i][j]);
-			j++;
-		} while (words[i][j] != NULL);
-		free(words[i]);
-	}
-	free(words);
+    return words;
 }
