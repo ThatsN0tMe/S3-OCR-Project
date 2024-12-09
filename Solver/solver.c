@@ -44,7 +44,7 @@ char** read_file(char* filepath, int* lines, int* columns) { //Reads from a file
 
 int check_direction(char** grid, int lines, int columns, int x, int y, int dx, int dy, char* word) { //Check if we are looking for the word in the right direction
     int length = strlen(word);
-    int error = length / 3;
+    int error = length / 2;
     int count_error = 0;
     for (int i = 0; i < length; i++) {
         int nx = x + i * dx;
@@ -84,9 +84,17 @@ void draw_rect(SDL_Surface* image, int x0, int y0, int x1, int y1, Uint32 color)
     draw_line(image, x1, y0, x1, y1, color);
     draw_line(image, x1, y1, x0, y1, color);
     draw_line(image, x0, y1, x0, y0, color);
+    draw_line(image, x0, y0 + 1, x1, y0 + 1, color);
+    draw_line(image, x1 + 1, y0, x1 + 1, y1, color);
+    draw_line(image, x1, y1 + 1, x0, y1 + 1, color);
+    draw_line(image, x0 + 1, y1, x0 + 1, y0, color);
+    draw_line(image, x0, y0 - 1, x1, y0 - 1, color);
+    draw_line(image, x1 - 1, y0, x1 - 1, y1, color);
+    draw_line(image, x1, y1 - 1, x0, y1 - 1, color);
+    draw_line(image, x0 - 1, y1, x0 - 1, y0, color);
 }
 
-int find_word(char** filepath, char** grid, int*** coordinates, int lines, int columns, char* word) {
+int find_word(char* filepath, char** grid, int*** coordinates, int lines, int columns, char* word) {
     int directions[8][2] = {
         {1, 0},   // Right
         {0, 1},   // Down
@@ -98,15 +106,15 @@ int find_word(char** filepath, char** grid, int*** coordinates, int lines, int c
         {1, -1}   // Diagonal top right
     };
 
-    SDL_Surface* image = IMG_Load(*filepath);
+    SDL_Surface* image = IMG_Load(filepath);
     if (!image) {
         printf("Error loading image: %s\n", IMG_GetError());
         return 0;
     }
 
-    Uint8 red = rand() % 256;    // Valeur entre 0 et 255
-    Uint8 green = rand() % 256;  // Valeur entre 0 et 255
-    Uint8 blue = rand() % 256;
+    Uint8 red = rand() % 224;    // Valeur entre 0 et 255
+    Uint8 green = rand() % 224;  // Valeur entre 0 et 255
+    Uint8 blue = rand() % 224;
     Uint32 color = SDL_MapRGB(image->format, red, green, blue);
 
     for (int y = 0; y < lines; y++) {
@@ -142,10 +150,7 @@ int find_word(char** filepath, char** grid, int*** coordinates, int lines, int c
                             coordinates[y1][x1][3],
                             color);
 
-                        char* save_path = getDestPath(*filepath);
-
-                        IMG_SavePNG(image, save_path);
-                        *filepath = save_path;
+                        IMG_SavePNG(image, filepath);
                         SDL_FreeSurface(image);
 
                         printf("The word \"%s\" was found at the coordinates: (%i, %i)(%i, %i)\n", word, x, y, x1, y1);
