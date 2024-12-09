@@ -15,6 +15,7 @@
 static int x1 = 0, yy1 = 0, x2 = 0, y2 = 0;
 static char* path = NULL;
 static SDL_Surface* surface = NULL;
+static SDL_Surface* originalSurface = NULL;
 
 int*** letterCoords = NULL;
 int*** words = NULL;
@@ -25,7 +26,9 @@ int lines, columns, numWords;
 void freeSurface() {
     if (surface != NULL) {
         SDL_FreeSurface(surface);
+        SDL_FreeSurface(originalSurface);
         surface = NULL;
+        originalSurface = NULL;
     }
     x1 = 0;
     yy1 = 0;
@@ -134,11 +137,10 @@ void print_result() {
     }
 
     print_grid(grid, lines, columns);
-
-    char* source_path = getSourcePath();
-    if (source_path == NULL)
-        return;
     
+    save(originalSurface, path);
+    autoRotate(path, 1);
+
     for (int i = 0; i < numWords; i++) {
 		char word[32];
         if (words[i] == NULL) break;
@@ -158,7 +160,8 @@ void print_result() {
 			j++;
 		}
         word[j] = '\0';
-        find_word(&source_path, grid, letterCoords, lines, columns, word);
+        printf("Word: %s\n", word);
+        find_word(path, grid, letterCoords, lines, columns, word);
 	}
 
     create_detection_window(path);
@@ -196,6 +199,7 @@ void detection(char* filepath) {
         printf("Error loading image: %s\n", IMG_GetError());
         return;
     }
+    originalSurface = IMG_Load(filepath);
 
     create_detection_window(filepath);
 }
