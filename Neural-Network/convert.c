@@ -4,13 +4,30 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <libgen.h>
 #include <string.h>
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
 #include <err.h>
 
-char* model = "/home/corentin/Documents/S3-OCR-Project/Neural-Network/models/easy-final.model";
+char* getModel(const char* path) {
+    char* dir = strdup(path);
+
+    for (int i = 0; i < 5; i++) {
+        char* temp = strdup(dir);
+        free(dir);
+        dir = dirname(temp);
+    }
+
+    char* output_file = malloc(256);
+
+    snprintf(output_file, 256, "%s/Neural-Network/models/easy-final.model", dir);
+
+    free(dir);
+
+    return output_file;
+}
 
 char use_model(char* model_path, char* image_path){
   struct Network net = load_network(model_path);
@@ -29,7 +46,7 @@ char use_model(char* model_path, char* image_path){
 }
 
 char get_char(char* image_path) {
-  return use_model(model, image_path);
+  return use_model(getModel(image_path), image_path);
 }
 
 /*
