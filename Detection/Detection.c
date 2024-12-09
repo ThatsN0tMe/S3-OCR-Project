@@ -17,7 +17,10 @@ static char* path = NULL;
 static SDL_Surface* surface = NULL;
 
 int*** letterCoords = NULL;
-int lines, columns;
+int*** words = NULL;
+
+int lines, columns, numWords;
+
 
 void freeSurface() {
     if (surface != NULL) {
@@ -83,17 +86,39 @@ void wordDetection() {
     Uint32 color = SDL_MapRGB(surface->format, 255, 255, 255);
     SDL_FillRect(surface, &rect, color);
 
-    detectWords(surface, path);
+    words = detectWords(surface, path, &numWords);
     saveSurface();
 }
 
+void print_grid(char** grid, int lines, int columns) {
+    printf("The grid size is %d lines * %d columns :\n\n", lines, columns);
+    for (int y = -4; y < lines; y++) {
+        if (y >= 0)
+            printf(" %d |", y);
+        for (int x = 0; x < columns; x++) {
+            if (y == -4 || y == -2) {
+                printf("    ");
+                y++;
+            }
+            if (y == -3)
+                printf(" %d", x);
+            else if (y == -1)
+                printf(" —");
+            else
+                printf(" %c", grid[y][x]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
+
 void print_result() {
-    if (letterCoords == NULL || x1 == x2 || yy1 == y2) {
+    if (letterCoords == NULL || words == NULL || x1 == x2 || yy1 == y2) {
         puts("Cannot print the result the previous steps were not performed.");
         return;
     }
 
-    char** grid = malloc(lines);
+    char** grid = malloc(lines * sizeof(char*));
     for (int i = 0; i < lines; i++) {
         grid[i] = malloc(columns);
         for (int j = 0; j < columns; j++) {
@@ -104,27 +129,37 @@ void print_result() {
             snprintf(output_file, sizeof(output_file), "%s/letter/letter_%d_%d.png", image_path, i, j);
 
             grid[i][j] = get_char(output_file);
+            free(dir);
         }
     }
 
-    char* source_path = getSourcePath();
+    print_grid(grid, lines, columns);
 
+    char* source_path = getSourcePath();
     if (source_path == NULL)
         return;
+    
+    for (int i = 0; i < numWords; i++) {
+		char word[32];
+        if (words[i] == NULL) break;
 
-    find_word(&source_path, grid, letterCoords, 14, 12, "apple");
-    find_word(&source_path, grid, letterCoords, 14, 12, "lemon");
-    find_word(&source_path, grid, letterCoords, 14, 12, "banana");
-    find_word(&source_path, grid, letterCoords, 14, 12, "lime");
-    find_word(&source_path, grid, letterCoords, 14, 12, "orange");
-    find_word(&source_path, grid, letterCoords, 14, 12, "watermelon");
-    find_word(&source_path, grid, letterCoords, 14, 12, "grape");
-    find_word(&source_path, grid, letterCoords, 14, 12, "kiwi");
-    find_word(&source_path, grid, letterCoords, 14, 12, "strawberry");
-    find_word(&source_path, grid, letterCoords, 14, 12, "blackberry");
-    find_word(&source_path, grid, letterCoords, 14, 12, "papaya");
-    find_word(&source_path, grid, letterCoords, 14, 12, "blueberry");
-    find_word(&source_path, grid, letterCoords, 14, 12, "raspberry");
+		int j = 0;
+		while (words[i][j] != NULL) {
+            // Couper et sauvegarder chaque mot
+            char* dir = strdup(path);
+            char* word_path = dirname(dir);
+
+            char output_file[256];
+            snprintf(output_file, sizeof(output_file), "%s/word/word_%d_letter_%d.png", word_path, i, j);
+            
+            word[j] = get_char(output_file);
+
+            free(dir);
+			j++;
+		}
+        word[j] = '\0';
+        find_word(&source_path, grid, letterCoords, lines, columns, word);
+	}
 
     create_detection_window(path);
 
@@ -135,6 +170,16 @@ void print_result() {
         free(letterCoords[i]);
     }
     free(letterCoords);
+
+    for (int i = 0; i < numWords; i++) {
+		int j = 0;
+		do {
+			free(words[i][j]);
+			j++;
+		} while (words[i][j] != NULL);
+		free(words[i]);
+	}
+	free(words);
 }
 
 

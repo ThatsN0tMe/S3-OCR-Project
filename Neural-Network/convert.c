@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <err.h>
 
-char* model = "/home/corentin/Documents/S3-OCR-Project/Neural-Network/models/handwritten-final.model";
+char* model = "/home/corentin/Documents/S3-OCR-Project/Neural-Network/models/easy-final.model";
 
 char use_model(char* model_path, char* image_path){
   struct Network net = load_network(model_path);

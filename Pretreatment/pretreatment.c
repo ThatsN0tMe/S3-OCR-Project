@@ -381,8 +381,6 @@ void autoPreprocess() {
     else
         filename = path;
 
-    if (!strcmp(filename, "level_1_image_2.png") || !strcmp(filename, "level_4_image_2.png")) return;
-
     if (!strcmp(filename, "level_4_image_1.png")) {
         median();
         median();

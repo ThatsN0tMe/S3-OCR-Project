@@ -44,11 +44,15 @@ char** read_file(char* filepath, int* lines, int* columns) { //Reads from a file
 
 int check_direction(char** grid, int lines, int columns, int x, int y, int dx, int dy, char* word) { //Check if we are looking for the word in the right direction
     int length = strlen(word);
+    int error = length / 3;
+    int count_error = 0;
     for (int i = 0; i < length; i++) {
         int nx = x + i * dx;
         int ny = y + i * dy;
-        if (nx < 0 || ny < 0 || nx >= columns || ny >= lines || tolower(grid[ny][nx]) != tolower(word[i]))
+        if (nx < 0 || ny < 0 || nx >= columns || ny >= lines || error <= count_error)
             return 0;
+        if (tolower(grid[ny][nx]) != tolower(word[i]))
+            count_error++;
     }    
     return 1;
 }
@@ -100,7 +104,10 @@ int find_word(char** filepath, char** grid, int*** coordinates, int lines, int c
         return 0;
     }
 
-    Uint32 red_color = SDL_MapRGB(image->format, 255, 0, 0);
+    Uint8 red = rand() % 256;    // Valeur entre 0 et 255
+    Uint8 green = rand() % 256;  // Valeur entre 0 et 255
+    Uint8 blue = rand() % 256;
+    Uint32 color = SDL_MapRGB(image->format, red, green, blue);
 
     for (int y = 0; y < lines; y++) {
         for (int x = 0; x < columns; x++) {
@@ -119,21 +126,21 @@ int find_word(char** filepath, char** grid, int*** coordinates, int lines, int c
                             coordinates[y][x][1],
                             coordinates[y1][x1][2],
                             coordinates[y1][x1][3],
-                            red_color);
+                            color);
                         else if (d == 3 || d == 4)
                             draw_rect(image,
                             coordinates[y1][x1][0],
                             coordinates[y1][x1][1],
                             coordinates[y][x][2],
                             coordinates[y][x][3],
-                            red_color);
+                            color);
                         else
                             draw_rect(image,
                             coordinates[y][x][0],
                             coordinates[y][x][1],
                             coordinates[y1][x1][2],
                             coordinates[y1][x1][3],
-                            red_color);
+                            color);
 
                         char* save_path = getDestPath(*filepath);
 
