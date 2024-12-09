@@ -80,14 +80,18 @@ void draw_line(SDL_Surface* image, int x0, int y0, int x1, int y1, Uint32 color)
 }
 
 void draw_rect(SDL_Surface* image, int x0, int y0, int x1, int y1, Uint32 color) {
-    SDL_Rect rect1 = {x0 - 1, y0 - 1, x1 + 1, y0 + 1};
-    SDL_Rect rect2 = {x1 - 1, y0 - 1, x1 + 1, y1 + 1};
-    SDL_Rect rect3 = {x1 - 1, y1 - 1, x0 + 1, y1 + 1};
-    SDL_Rect rect4 = {x0 - 1, y1 - 1, x0 + 1, y0 + 1};
-    SDL_FillRect(image, &rect1, color);
-    SDL_FillRect(image, &rect2, color);
-    SDL_FillRect(image, &rect3, color);
-    SDL_FillRect(image, &rect4, color);
+    draw_line(image, x0, y0, x1, y0, color);
+    draw_line(image, x1, y0, x1, y1, color);
+    draw_line(image, x1, y1, x0, y1, color);
+    draw_line(image, x0, y1, x0, y0, color);
+    draw_line(image, x0, y0 + 1, x1, y0 + 1, color);
+    draw_line(image, x1 + 1, y0, x1 + 1, y1, color);
+    draw_line(image, x1, y1 + 1, x0, y1 + 1, color);
+    draw_line(image, x0 + 1, y1, x0 + 1, y0, color);
+    draw_line(image, x0, y0 - 1, x1, y0 - 1, color);
+    draw_line(image, x1 - 1, y0, x1 - 1, y1, color);
+    draw_line(image, x1, y1 - 1, x0, y1 - 1, color);
+    draw_line(image, x0 - 1, y1, x0 - 1, y0, color);
 }
 
 int find_word(char* filepath, char** grid, int*** coordinates, int lines, int columns, char* word) {
