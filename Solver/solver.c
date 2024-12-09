@@ -37,7 +37,6 @@ char** read_file(char* filepath, int* lines, int* columns) { //Reads from a file
     char** grid = (char**)malloc((*lines) * sizeof(char*)); //Allocate memory to store the grid
     for (int i = 0; i < (*lines); i++) {
         grid[i] = (char*)malloc((*columns) * sizeof(char));
-        fscanf(file, "%s", grid[i]);
     }
     fclose(file);
     return grid;

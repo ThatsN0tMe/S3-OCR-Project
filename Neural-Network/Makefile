@@ -1,18 +1,18 @@
-CC = clang
+CC = gcc
 CFLAGS = -Wall -Wextra -Werror -Wvla -D_GNU_SOURCE
 LDFLAGS = -lSDL2 -lm -lSDL2_image
 SPEED := -Ofast -march=native -mtune=native -mavx2 
 
 SRC = \
-			main.c \
+			convert.c \
 			neural-net/Network.c \
 			neural-net/network_functions.c \
 			shared/math_helpers.c \
 			shared/arr_helpers.c 
 
-OBJ = main.o Network.o \
+OBJ = convert.o Network.o \
 			math_helpers.o arr_helpers.o network_functions.o
-BIN = main
+BIN = convert
 
 
 all: $(BIN)

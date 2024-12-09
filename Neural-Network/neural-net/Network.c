@@ -13,6 +13,88 @@
 // will be more than 20 chars
 #define CALLOC_MAX_DATA_SIZE 20
 
+#include <ctype.h>
+#include <math.h>
+#include <errno.h>
+
+double my_strtod(const char *str, char **endptr) {
+    const char *s = str;
+    double result = 0.0;
+    int sign = 1;
+    int exp_sign = 1;
+    int exponent = 0;
+    int seen_digit = 0;
+
+    // Skip leading whitespace
+    while (isspace((unsigned char)*s)) {
+        s++;
+    }
+
+    // Handle optional sign
+    if (*s == '+' || *s == '-') {
+        if (*s == '-') {
+            sign = -1;
+        }
+        s++;
+    }
+
+    // Parse the integer part and fractional part
+    while (isdigit((unsigned char)*s)) {
+        seen_digit = 1;
+        result = result * 10.0 + (*s - '0');
+        s++;
+    }
+
+    if (*s == '.') {
+        s++;
+        double divisor = 10.0;
+        while (isdigit((unsigned char)*s)) {
+            seen_digit = 1;
+            result += (*s - '0') / divisor;
+            divisor *= 10.0;
+            s++;
+        }
+    }
+
+    // Handle scientific notation (e.g., "e+5", "E-3")
+    if (*s == 'e' || *s == 'E') {
+        s++;
+        if (*s == '+' || *s == '-') {
+            if (*s == '-') {
+                exp_sign = -1;
+            }
+            s++;
+        }
+
+        while (isdigit((unsigned char)*s)) {
+            exponent = exponent * 10 + (*s - '0');
+            s++;
+        }
+    }
+
+    if (!seen_digit) {
+        // No valid conversion
+        if (endptr) {
+            *endptr = (char *)str;
+        }
+        return 0.0;
+    }
+
+    // Apply exponent if present
+    if (exponent != 0) {
+        result *= pow(10.0, exp_sign * exponent);
+    }
+
+    // Apply sign
+    result *= sign;
+
+    if (endptr) {
+        *endptr = (char *)s;
+    }
+
+    return result;
+}
+
 double get_z(double *inputs, double *weights, double bias, size_t inputsize){
   double sum_weighted_inputs = 0;
   for (size_t i = 0; i < inputsize; i++){
@@ -238,7 +320,7 @@ struct Network load_network(char *path) {
         }
         // convert data buffer to double
         char *endptr;
-        double f_data = strtod(curr_data, &endptr);
+        double f_data = my_strtod(curr_data, &endptr);
         if (*endptr != '\0'){
           errx(EXIT_FAILURE,
                "data could not be converted to a double or was null, %s\n", curr_data);

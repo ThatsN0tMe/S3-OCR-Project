@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <err.h>
 
-char* model = "models/handwritten-final.model";
+char* model = "/home/corentin/Documents/S3-OCR-Project/Neural-Network/models/handwritten-final.model";
 
 char use_model(char* model_path, char* image_path){
   struct Network net = load_network(model_path);
@@ -32,9 +32,11 @@ char get_char(char* image_path) {
   return use_model(model, image_path);
 }
 
+/*
 int main(int argc, char** argv) {
   if (argc != 2) {
     err(EXIT_FAILURE, "Parameter must be : {Path_to_image}");
   }
   printf("Prediction of %s...\nResult : %c", argv[1], get_char(argv[1]));
 }
+*/

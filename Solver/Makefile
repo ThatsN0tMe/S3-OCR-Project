@@ -1,4 +1,4 @@
-CC := gcc
+CC := clang
 CFLAGS := -Wall -Wextra -Werror
 TARGET := solver
 OBJS := solver.o

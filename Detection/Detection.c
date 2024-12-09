@@ -2,12 +2,14 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <libgen.h>
 
 #include "Detection.h"
 #include "../Functions.h"
 #include "../Rotate/rotate.h"
 #include "../Interface/Interface.h"
 #include "../Solver/solver.h"
+#include "../Neural-Network/convert.h"
 
 
 static int x1 = 0, yy1 = 0, x2 = 0, y2 = 0;
@@ -91,22 +93,19 @@ void print_result() {
         return;
     }
 
-    char* grid[] = {
-        "MSWATERMELON",
-        "YTBNEPEWRMAE",
-        "RRLWPAPAYANA",
-        "RANLEMONANEP",
-        "EWLEAPRIABPR",
-        "BBILBBWBRLAY",
-        "KEMPMAWLRARB",
-        "CREPRNRERRGR",
-        "ARYAYAOANLAM",
-        "LYYARNERKIWI",
-        "BEBAAANAAPRT",
-        "YRREBPSARNNW",
-        "YRREBEULBLGI",
-        "TYPATEAEPACE"
-    };
+    char** grid = malloc(lines);
+    for (int i = 0; i < lines; i++) {
+        grid[i] = malloc(columns);
+        for (int j = 0; j < columns; j++) {
+            char* dir = strdup(path);
+            char* image_path = dirname(dir);
+
+            char output_file[256];
+            snprintf(output_file, sizeof(output_file), "%s/letter/letter_%d_%d.png", image_path, i, j);
+
+            grid[i][j] = get_char(output_file);
+        }
+    }
 
     char* source_path = getSourcePath();
 
