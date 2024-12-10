@@ -22,7 +22,7 @@ char* getModel(const char* path) {
 
     char* output_file = malloc(256);
 
-    snprintf(output_file, 256, "%s/Neural-Network/models/easy-final.model", dir);
+    snprintf(output_file, 256, "%s/Neural-Network/models/grid-final1.model", dir);
 
     free(dir);
 
